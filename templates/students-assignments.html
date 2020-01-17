@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Over/Under</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    {% block javascript %}{% endblock %}
+</head>
+<body>
+    <table>
+        <tr>
+            <td id="topleft"><a href="/assignments-students/{{ assignment_name }}/{{ email }}">Transpose</a></td>
+            {% for assignment in assignments %}
+            <th>{{ assignment.name }}</th>
+            {% endfor %}
+        </tr>
+        {% for student in students %}
+        <tr>
+            <th>{{ student }}</th>
+            {% for assignment in assignments %}
+            <td>{{ gradebook.get(student, assignment.qualified_name).score }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+
+    </table>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Over/Under</title>
+        <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="/static/js/main.js"></script>
+    </head>
+    <body>
+        <table>
+            <tr>
+                <td id="topleft">
+                    <a href="/students-assignments/{{ email }}/{{ assignment_name }}">Transpose</a>
+                    /
+                    <a href="/assignments-students/all/all">Clear</a>
+                </td>
+                {% for student in students %}
+                <th class="student"><div>
+                    <a href="/assignments-students/{{ assignment_name }}/{{ student.email }}">{{ student.first_name }} {{ student.last_name }}</a>
+                    <a href="mailto:{{ student.email }}">&#x2709;</div>
+                </div></th>
+                {% endfor %}
+            </tr>
+            {% for assignment in assignments %}
+            <tr>
+                <th class="assignment"><div>
+                    <a href="/assignments-students/{{ assignment.qualified_name }}/{{ email }}">{{ assignment.heading }}</a>
+                </div></th>
+                {% for student in students %}
+                <td class="grade"><div>
+                    {% if gradebook.get(student, assignment.qualified_name).leaf %}
+                    <input id="{{ student.email }}::{{ assignment.qualified_name }}" type="text" value="{{ gradebook.get(student, assignment.qualified_name).display_str }}" onblur="save_score(this)"">
+                    {% else %}
+                    <input readonly tabindex="-1" type="text" value="{{ gradebook.get(student, assignment.qualified_name).display_str }}">
+                    {% endif %}
+                </div></td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>
