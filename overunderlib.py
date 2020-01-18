@@ -372,6 +372,11 @@ class Grade:
 Student = namedtuple('Student', 'first_name, last_name, email')
 
 
+def student_from_str(line):
+    regex = r'(?P<last_name>[^,]*), (?P<first_name>.*) <(?P<email>.*)>'
+    return Student(**re.fullmatch(regex, line).groupdict())
+
+
 class GradeBook:
 
     def __init__(self, filepath):
@@ -384,9 +389,8 @@ class GradeBook:
         self.students = {}
         self.grades = {}
         for line in lines[1:]:
-            student, *scores = line.split('\t')
-            match = re.fullmatch(regex, student)
-            student = Student(**match.groupdict())
+            student_str, *scores = line.split('\t')
+            student = student_from_str(student_str)
             self.grades[student.email] = self.assignments.grade(student, scores)
             self.students[student.email] = student
 
