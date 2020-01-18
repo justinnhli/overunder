@@ -412,11 +412,3 @@ class GradeBook:
                     ),
                 ]))
                 fd.write('\n')
-
-def main():
-    data_structures = GradeBook(Path('data-structures.csv'))
-    data_structures.to_csv(Path('temp.csv'))
-
-
-if __name__ == '__main__':
-    main()

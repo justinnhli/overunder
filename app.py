@@ -2,7 +2,7 @@ import sys
 import json
 from pathlib import Path
 
-from overunder import GradeBook
+from overunderlib import GradeBook
 
 
 try:
@@ -33,12 +33,12 @@ except ModuleNotFoundError as err:
 
 def create_app(filepath):
     app = Flask(__name__)
-    app.config['gradebook'] = GradeBook(Path(sys.argv[1]))
+    app.config['gradebook'] = GradeBook(filepath)
     app.config['root_directory'] = Path(__file__).parent.resolve()
     return app
 
 
-app = create_app(sys.argv[1])
+app = create_app(Path(sys.argv[2]))
  
 
 @app.route('/students-assignments/<email>/<assignment_name>')
@@ -130,11 +130,3 @@ def get_js(filename):
         return send_from_directory(str(file_dir), filename)
     else:
         return abort(404)
-
-
-def main():
-    app.run(debug=True)
-
-
-if __name__ == '__main__':
-    main()
