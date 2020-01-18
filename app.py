@@ -101,13 +101,16 @@ def save_score():
     data = json.loads(request.get_data())
     gradebook = app.config['gradebook']
     email = data['alias'] + '@oxy.edu'
-    changed_grades = [gradebook.get(gradebook.students[email], data['assignment'])]
+    student = gradebook.students[email]
+    gradebook.set(student, data['assignment'], data['value'])
+    changed_grades = [gradebook.get(student, data['assignment'])]
     while changed_grades[-1].parent is not None:
         changed_grades.append(changed_grades[-1].parent)
     result = [ 
         [f'{data["alias"]}__{grade.qualified_name}', grade.display_str]
         for grade in changed_grades
     ]
+    gradebook.save()
     return json.dumps(result)
 
 

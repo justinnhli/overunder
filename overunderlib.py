@@ -411,6 +411,9 @@ class GradeBook:
     def get_student_by_email(self, email):
         return self.grades[email]
 
+    def set(self, student, assignment, grade):
+        self.grades[student.email][assignment].set(grade)
+
     def save(self):
         self.to_csv()
 
