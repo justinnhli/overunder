@@ -294,6 +294,9 @@ class Grade:
         if self.children:
             self._percent = None
             assert str(self.percent) == self.raw_score_str
+        elif self.raw_score_str == 'None':
+            self.score_type = 'none'
+            self._percent = Fraction(0)
         elif self.raw_score_str.endswith('%'):
             self.score_type = 'percent'
             self._percent = Fraction(self.raw_score_str[:-1]) / 100
