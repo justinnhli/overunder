@@ -376,7 +376,11 @@ class Grade:
             yield self
 
 
-Student = namedtuple('Student', 'first_name, last_name, email')
+class Student(namedtuple('Student', 'first_name, last_name, email')):
+
+    @property
+    def alias(self):
+        return self.email.split('@')[0]
 
 
 def student_from_str(line):

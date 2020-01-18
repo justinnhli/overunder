@@ -100,12 +100,12 @@ def view_assignments_students(assignment_name, email):
 def save_score():
     data = json.loads(request.get_data())
     gradebook = app.config['gradebook']
-    email = data['email'].replace('_', '@')
+    email = data['alias'] + '@oxy.edu'
     changed_grades = [gradebook.get(gradebook.students[email], data['assignment'])]
     while changed_grades[-1].parent is not None:
         changed_grades.append(changed_grades[-1].parent)
     result = [ 
-        [f'{email}|{grade.qualified_name}', grade.display_str]
+        [f'{data["alias"]}__{grade.qualified_name}', grade.display_str]
         for grade in changed_grades
     ]
     return json.dumps(result)

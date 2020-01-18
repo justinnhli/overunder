@@ -30,7 +30,7 @@
                 {% for student in students %}
                 <td class="grade"><div>
                     {% if gradebook.get(student, assignment.qualified_name).leaf %}
-                    <input id="{{ student.email }}::{{ assignment.qualified_name }}" type="text" value="{{ gradebook.get(student, assignment.qualified_name).display_str }}" onblur="save_score(this)"">
+                    <input id="{{ student.alias }}__{{ assignment.qualified_name }}" class="{{ gradebook.get(student, assignment.qualified_name).weight_type }}_type" type="text" value="{{ gradebook.get(student, assignment.qualified_name).display_str }}" onblur="save_score(this)"">
                     {% else %}
                     <input readonly tabindex="-1" type="text" value="{{ gradebook.get(student, assignment.qualified_name).display_str }}">
                     {% endif %}
