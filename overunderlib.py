@@ -384,7 +384,6 @@ def student_from_str(line):
 class GradeBook:
 
     def __init__(self, filepath):
-        regex = r'(?P<last_name>[^,]*), (?P<first_name>.*) <(?P<email>.*)>'
         with filepath.open() as fd:
             lines = fd.read().splitlines()
         assignment_strs = lines[0].split('\t')[1:]
