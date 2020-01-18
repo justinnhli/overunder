@@ -298,9 +298,9 @@ class Grade:
             self.score_type = 'percent'
             self._percent = Fraction(self.raw_score_str[:-1]) / 100
         else:
-            assert self.assignment.weight_type != 'percent'
+            assert self.weight_type != 'percent'
             self.score_type = 'points'
-            self._percent = Fraction(Fraction(self.raw_score_str), self.assignment.weight_points)
+            self._percent = Fraction(Fraction(self.raw_score_str), self.weight_points)
         if self.parent is not None:
             self.parent.update()
 
@@ -311,6 +311,14 @@ class Grade:
     @property
     def weight(self):
         return self.assignment.weight
+
+    @property
+    def weight_type(self):
+        return self.assignment.weight_type
+
+    @property
+    def weight_points(self):
+        return self.assignment.weight_points
 
     @property
     def total(self):
