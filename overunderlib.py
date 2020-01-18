@@ -384,7 +384,8 @@ def student_from_str(line):
 class GradeBook:
 
     def __init__(self, filepath):
-        with filepath.open() as fd:
+        self.filepath = filepath
+        with self.filepath.open() as fd:
             lines = fd.read().splitlines()
         assignment_strs = lines[0].split('\t')[1:]
         self.assignments = Assignment.from_strings(assignment_strs)
@@ -403,18 +404,24 @@ class GradeBook:
     def get_student_by_email(self, email):
         return self.grades[email]
 
-    def to_csv(self, filepath):
+    def save(self):
+        self.to_csv()
+
+    def to_csv(self, filepath=None):
+        if filepath is None:
+            filepath = self.filepath
         with filepath.open('w') as fd:
             fd.write('\t'.join([
                 'Student',
                 *(assignment.heading for assignment in self.assignments.traversal()),
             ]))
             fd.write('\n')
-            for student in self.grades:
+            for email in self.grades:
+                student = self.students[email]
                 fd.write('\t'.join([
                     f'{student.last_name}, {student.first_name} <{student.email}>',
                     *(
-                        self.grades[student][assignment.qualified_name].score
+                        self.grades[email][assignment.qualified_name].score
                         for assignment in self.assignments.traversal()
                     ),
                 ]))
