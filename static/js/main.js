@@ -18,7 +18,6 @@ function save_score(input) {
             response = JSON.parse(response);
             for (var i = 0; i < response.length; i++) {
                 var id = "#" + response[i][0];
-                console.log(id);
                 $(id).val(response[i][1]);
             }
         })
