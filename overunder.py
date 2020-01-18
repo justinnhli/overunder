@@ -18,7 +18,7 @@ def do_init():
     with args.filepath.open() as fd:
         for line in fd:
             students.append(student_from_str(line.strip()))
-    print('\t'.join(['Student', args.course_name]))
+    print('\t'.join(['Student', f'{args.course_name} (100.00%)']))
     for student in students:
         print(f'{student.last_name}, {student.first_name} <{student.email}>\tNone')
 
