@@ -32,6 +32,7 @@ except ModuleNotFoundError as err:
 
 
 def create_app(filepath):
+    filepath = filepath.expanduser().resolve()
     app = Flask(__name__)
     app.config['gradebook'] = GradeBook(filepath)
     app.config['root_directory'] = Path(__file__).parent.resolve()

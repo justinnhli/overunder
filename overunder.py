@@ -13,6 +13,7 @@ def do_init():
     arg_parser.add_argument('filepath', type=Path)
     arg_parser.add_argument('course_name')
     args = arg_parser.parse_args()
+    args.filepath = args.filepath.expanduser().resolve()
     students = []
     with args.filepath.open() as fd:
         for line in fd:
