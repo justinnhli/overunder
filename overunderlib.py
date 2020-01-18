@@ -264,7 +264,6 @@ class Grade:
 
         self.raw_score_str = raw_score_str
         self.score_type = None
-        self._points = None
         self._percent = None
         self.update()
 
@@ -293,18 +292,15 @@ class Grade:
 
     def update(self):
         if self.children:
-            self._points = None
             self._percent = None
             assert str(self.percent) == self.raw_score_str
         elif self.raw_score_str.endswith('%'):
             self.score_type = 'percent'
             self._percent = Fraction(self.raw_score_str[:-1]) / 100
-            self._points = None
         else:
             assert self.assignment.weight_type != 'percent'
             self.score_type = 'points'
-            self._points = Fraction(self.raw_score_str)
-            self._percent = Fraction(self._points, self.assignment.weight_points)
+            self._percent = Fraction(Fraction(self.raw_score_str), self.assignment.weight_points)
         if self.parent is not None:
             self.parent.update()
 
