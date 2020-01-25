@@ -41,6 +41,9 @@ def create_app(filepath):
 
 app = create_app(Path(sys.argv[2]))
  
+@app.route('/')
+def root():
+    return redirect(url_for('view_assignments_students', email='all', assignment_name='all'))
 
 @app.route('/students-assignments/<email>/<assignment_name>')
 def view_students_assignments(email, assignment_name):
