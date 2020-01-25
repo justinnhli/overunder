@@ -3,6 +3,9 @@ table {border-collapse:collapse;}
 th, td {border:1px solid #000000;}
 th div, td div {height:1.5em; max-height:1.5em; overflow:hidden;}
 td#topleft {text-align:center;}
+td.controls div {width:5em;}
+td.controls div a {text-decoration:none;}
+td.controls div a:hover {font-weight:bold;}
 th.student div {height:3em; max-height:3em; overflow:hidden;}
 th.assignment {text-align:left;}
 td.grade, td.grade input {text-align:right; font-size:12pt;}

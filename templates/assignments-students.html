@@ -10,7 +10,7 @@
     <body>
         <table>
             <tr>
-                <td id="topleft">
+                <td id="topleft" colspan="2">
                     <a href="/students-assignments/{{ email }}/{{ assignment_name }}">Transpose</a>
                     /
                     <a href="/assignments-students/all/all">Clear</a>
@@ -24,6 +24,12 @@
             </tr>
             {% for assignment in assignments %}
             <tr>
+                <td class="controls"><div>
+                    <a href="/move-up/{{ assignment.qualified_name }}">&#x25B2;</a>
+                    <a href="/move-down/{{ assignment.qualified_name }}">&#x25BC;</a>
+                    <a href="/create-child/{{ assignment.qualified_name }}">&#x21B3;</a>
+                    <a href="/delete/{{ assignment.qualified_name }}" onclick="return confirm('Are you sure you want to delete {{ assignment.name }}?');">&#x2717;</a>
+                </div></td>
                 <th class="assignment"><div>
                     <a href="/assignments-students/{{ assignment.qualified_name }}/{{ email }}">{{ assignment.heading }}</a>
                 </div></th>
