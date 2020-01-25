@@ -414,6 +414,21 @@ class GradeBook:
     def set(self, student, assignment, grade):
         self.grades[student.email][assignment].set(grade)
 
+    def move_up(self, assignment):
+        print('move up ' + assignment)
+        pass
+
+    def move_down(self, assignment):
+        print('move down ' + assignment)
+        pass
+
+    def create_child(self, assignment, name):
+        print('move down ' + assignment + ' ' + name)
+        pass
+
+    def delete(self, assignment):
+        pass
+
     def save(self):
         self.to_csv()
 

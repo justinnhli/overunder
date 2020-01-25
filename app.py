@@ -98,6 +98,28 @@ def view_assignments_students(assignment_name, email):
     }
     return render_template('assignments-students.html', **context)
 
+@app.route('/move-up/<assignment_name>')
+def move_up(assignment_name):
+    app.config['gradebook'].move_up(assignment_name)
+    return request.referrer
+
+@app.route('/move-down/<assignment_name>')
+def move_down(assignment_name):
+    app.config['gradebook'].move_down(assignment_name)
+    return request.referrer
+
+@app.route('/create-child/<assignment_name>')
+def create_child(assignment_name):
+    pass
+
+@app.route('/delete/<assignment_name>')
+def delete(assignment_name):
+    pass
+
+@app.route('/reload', methods=['POST'])
+def reload():
+    pass # FIXME
+
 
 @app.route('/save_score', methods=['POST'])
 def save_score():

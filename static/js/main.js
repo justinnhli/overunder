@@ -25,3 +25,6 @@ function save_score(input) {
             console.log("failed");
         });
 }
+
+function create_child(assignment) {
+}
