@@ -6,8 +6,8 @@ td#topleft {text-align:center;}
 td.controls div {width:5em;}
 td.controls div a {text-decoration:none;}
 td.controls div a:hover {font-weight:bold;}
-th.student div {height:3em; max-height:3em; overflow:hidden;}
-th.assignment {text-align:left;}
-td.grade, td.grade input {text-align:right; font-size:12pt;}
-td.grade div {width:7em;}
-td.grade input {width:6em; height:1.25em; border:0;}
+th.student {vertical-align:bottom;}
+th.student div {height:auto; max-height:4em; overflow:hidden;}
+th.assignment div {text-align:left; width:15em;}
+td.grade, td.grade input {text-align:right; font-size:inherit;}
+td.grade input {min-width:7em; max-width:7em; height:1.25em; border:0;}
