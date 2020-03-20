@@ -2,7 +2,7 @@ import sys
 import json
 from pathlib import Path
 
-from overunderlib import GradeBook
+from overunder import GradeBook
 
 
 try:
