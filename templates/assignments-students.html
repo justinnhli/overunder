@@ -11,36 +11,61 @@
         <table>
             <tr>
                 <td id="topleft" colspan="2">
-                    <a href="/students-assignments/{{ email }}/{{ assignment_name }}">Transpose</a>
+                    <a href="/reload">Reload</a>
+                    <!-- FIXME
+                    /
+                    <a href="/students-assignments/{{ student_filter }}/{{ assignment_filter }}">Transpose</a>
+                    -->
                     /
                     <a href="/assignments-students/all/all">Clear</a>
                 </td>
                 {% for student in students %}
                 <th class="student"><div>
-                    <a href="/assignments-students/{{ assignment_name }}/{{ student.email }}">{{ student.first_name }} {{ student.last_name }}</a><br>
-                    <a href="mailto:{{ student.email }}">&#x2709;</div>
+                    <a href="/assignments-students/{{ assignment_filter }}/{{ student.alias }}">{{ student.first_name }} {{ student.last_name }}</a><br>
+                    <a href="mailto:{{ student.email }}">&#x2709;</a>
                 </div></th>
                 {% endfor %}
             </tr>
             {% for assignment in assignments %}
-            <tr>
+            <tr class="{% for ancestor in assignment.ancestors %}{{ ancestor.qualified_name }} {% endfor %}">
                 <td class="controls"><div>
+                    {% if assignment.parent and assignment.index > 0 %}
                     <a href="/move-up/{{ assignment.qualified_name }}">&#x25B2;</a>
-                    <a href="/move-down/{{ assignment.qualified_name }}">&#x25BC;</a>
-                    <a href="/create-child/{{ assignment.qualified_name }}">&#x21B3;</a>
-                    <a href="/delete/{{ assignment.qualified_name }}" onclick="return confirm('Are you sure you want to delete {{ assignment.name }}?');">&#x2717;</a>
-                </div></td>
-                <th class="assignment"><div>
-                    <a href="/assignments-students/{{ assignment.qualified_name }}/{{ email }}">{{ assignment.heading }}</a>
-                </div></th>
-                {% for student in students %}
-                <td class="grade"><div>
-                    {% if gradebook.get(student, assignment.qualified_name).leaf %}
-                    <input id="{{ student.alias }}__{{ assignment.qualified_name }}" class="{{ gradebook.get(student, assignment.qualified_name).weight_type }}_type" type="text" value="{{ gradebook.get(student, assignment.qualified_name).display_str }}" onblur="save_score(this)"">
                     {% else %}
-                    <input readonly tabindex="-1" type="text" value="{{ gradebook.get(student, assignment.qualified_name).display_str }}">
+                    <span class="hidden">&#x25B2;</span>
+                    {% endif %}
+                    {% if assignment.parent and assignment.index < assignment.parent.num_children - 1 %}
+                    <a href="/move-down/{{ assignment.qualified_name }}">&#x25BC;</a>
+                    {% else %}
+                    <span class="hidden">&#x25BC;</span>
+                    {% endif %}
+                    <a href="" onclick="return create_child('{{ assignment.qualified_name }}');">&#x21B3;</a>
+                    {% if assignment.parent %}
+                    <a href="/delete/{{ assignment.qualified_name }}" onclick="return confirm('Are you sure you want to delete {{ assignment.name }}?');">&#x2717;</a>
+                    {% else %}
+                    <span class="hidden">&#x2717;</span>
                     {% endif %}
                 </div></td>
+                <th class="assignment"><div>
+                    {% if assignment.is_leaf %}
+                    <span class="expander-filler">{{ (assignment.depth - min_depth) * '&nbsp;' | safe }}&nbsp;</span>
+                    {% else %}
+                    <span class="expander" onclick="toggle('{{ assignment.qualified_name }}');">{{ (assignment.depth - min_depth) * '&nbsp;' | safe }}<span  id="{{ assignment.qualified_name }}-expander">-</span></span>
+                    {% endif %}
+                    <a href="/assignments-students/{{ assignment.qualified_name }}/{{ student_filter }}">
+                        {{ assignment }}
+                    </a>
+                </div></th>
+                {% for student in students %}
+                {% if gradebook.get_grade(student.alias, assignment.qualified_name).is_leaf %}
+                <td class="grade"><div>
+                    <input id="{{ student.alias }}__{{ assignment.qualified_name }}" type="text" value="{{ gradebook.get_grade(student.alias, assignment.qualified_name).grade_str }}" onkeyup="save_score(this);" onblur="save_score(this);">
+                </div></td>
+                {% else %}
+                <td class="grade readonly"><div>
+                    <input readonly tabindex="-1" id="{{ student.alias }}__{{ assignment.qualified_name }}" type="text" value="{{ gradebook.get_grade(student.alias, assignment.qualified_name).display_str }}">
+                </div></td>
+                {% endif %}
                 {% endfor %}
             </tr>
             {% endfor %}

@@ -1,21 +1,26 @@
-import sys
+"""A gradebook webapp."""
+
 import json
 from pathlib import Path
+from argparse import ArgumentParser
 
 from overunder import GradeBook
-
 
 try:
     # pylint: disable = import-error
     from flask import Flask, render_template, abort, request, send_from_directory, url_for, redirect
-    from flask.json import jsonify
 except ModuleNotFoundError as err:
 
     def run_with_venv(venv):
+        # type: (str) -> None
         """Run this script in a virtual environment.
 
         Parameters:
             venv (str): The virtual environment to use.
+
+        Raises:
+            FileNotFoundError: If the virtual environment does not exist.
+            ImportError: If the virtual environment does not contain the necessary packages.
         """
         # pylint: disable = ungrouped-imports, reimported, redefined-outer-name, import-outside-toplevel
         import sys
@@ -30,41 +35,38 @@ except ModuleNotFoundError as err:
 
     run_with_venv('flask-heroku')
 
-
-def create_app(filepath):
-    filepath = filepath.expanduser().resolve()
-    app = Flask(__name__)
-    app.config['gradebook'] = GradeBook(filepath)
-    app.config['root_directory'] = Path(__file__).parent.resolve()
-    return app
+APP = Flask(__name__)
 
 
-app = create_app(Path(sys.argv[2]))
- 
-@app.route('/')
+@APP.route('/')
 def root():
-    return redirect(url_for('view_assignments_students', email='all', assignment_name='all'))
+    # type: () -> Response
+    """Respond to a Flask route."""
+    return redirect(url_for('view_assignments_students', student_filter='all', assignment_filter='all'))
 
-@app.route('/students-assignments/<email>/<assignment_name>')
-def view_students_assignments(email, assignment_name):
-    gradebook = app.config['gradebook']
-    if assignment_name == 'all':
-        assignments = list(gradebook.assignments.traversal())
+
+@APP.route('/students-assignments/<student_filter>/<assignment_filter>')
+def view_students_assignments(student_filter, assignment_filter):
+    # type: (str, str) -> Response
+    """Respond to a Flask route."""
+    gradebook = APP.config['gradebook']
+    if assignment_filter == 'all':
+        assignments = list(gradebook.assignments.traversal)
     else:
         assignments = list(
-            assignment for assignment in gradebook.assignments.traversal()
-            if assignment.qualified_name.startswith(assignment_name)
+            assignment for assignment in gradebook.assignments.traversal
+            if assignment.qualified_name.startswith(assignment_filter)
         )
-    if email == 'all':
+    if student_filter == 'all':
         students = list(gradebook.grades.keys())
     else:
         students = list(
             student for student in gradebook.grades.keys()
-            if email in student
+            if student_filter in student
         )
     context = {
-        'email': email,
-        'assignment_name': assignment_name,
+        'student_filter': student_filter,
+        'assignment_filter': assignment_filter,
         'gradebook': gradebook,
         'assignments': assignments,
         'students': students,
@@ -72,77 +74,103 @@ def view_students_assignments(email, assignment_name):
     return render_template('students-assignments.html', **context)
 
 
-@app.route('/assignments-students/<assignment_name>/<email>')
-def view_assignments_students(assignment_name, email):
-    gradebook = app.config['gradebook']
-    if assignment_name == 'all':
-        assignments = list(gradebook.assignments.traversal())
+@APP.route('/assignments-students/<assignment_filter>/<student_filter>')
+def view_assignments_students(assignment_filter, student_filter):
+    # type: (str, str) -> Response
+    """Respond to a Flask route."""
+    gradebook = APP.config['gradebook']
+    if assignment_filter == 'all':
+        assignments = list(gradebook.assignments.traversal)
     else:
         assignments = list(
-            assignment for assignment in gradebook.assignments.traversal()
-            if assignment.qualified_name.startswith(assignment_name)
+            assignment for assignment in gradebook.assignments.traversal
+            if assignment.qualified_name.startswith(assignment_filter)
         )
-    if email == 'all':
+    if student_filter == 'all':
         students = list(gradebook.students.values())
     else:
         students = list(
             student for student in gradebook.students.values()
-            if student.email == email
+            if student.alias == student_filter
         )
     context = {
-        'assignment_name': assignment_name,
-        'email': email,
+        'assignment_filter': assignment_filter,
+        'student_filter': student_filter,
         'gradebook': gradebook,
+        'min_depth': assignments[0].depth,
         'assignments': assignments,
         'students': students,
     }
     return render_template('assignments-students.html', **context)
 
-@app.route('/move-up/<assignment_name>')
-def move_up(assignment_name):
-    app.config['gradebook'].move_up(assignment_name)
-    return request.referrer
 
-@app.route('/move-down/<assignment_name>')
-def move_down(assignment_name):
-    app.config['gradebook'].move_down(assignment_name)
-    return request.referrer
-
-@app.route('/create-child/<assignment_name>')
-def create_child(assignment_name):
-    pass
-
-@app.route('/delete/<assignment_name>')
-def delete(assignment_name):
-    pass
-
-@app.route('/reload', methods=['POST'])
-def reload():
-    pass # FIXME
+@APP.route('/move-up/<qualified_name>')
+def move_up(qualified_name):
+    # type: (str) -> Response
+    """Respond to a Flask route."""
+    APP.config['gradebook'].move_assignment_up(qualified_name)
+    return redirect(request.referrer)
 
 
-@app.route('/save_score', methods=['POST'])
-def save_score():
+@APP.route('/move-down/<qualified_name>')
+def move_down(qualified_name):
+    # type: (str) -> Response
+    """Respond to a Flask route."""
+    APP.config['gradebook'].move_assignment_down(qualified_name)
+    return redirect(request.referrer)
+
+
+@APP.route('/create-child', methods=['POST'])
+def create_child():
+    # type: () -> Response
+    """Respond to a Flask route."""
     data = json.loads(request.get_data())
-    gradebook = app.config['gradebook']
-    email = data['alias'] + '@oxy.edu'
-    student = gradebook.students[email]
-    gradebook.set(student, data['assignment'], data['value'])
-    changed_grades = [gradebook.get(student, data['assignment'])]
-    while changed_grades[-1].parent is not None:
-        changed_grades.append(changed_grades[-1].parent)
-    result = [ 
+    APP.config['gradebook'].add_assignment(data['qualified_name'], data['weight_str'])
+    return redirect(request.referrer)
+
+
+@APP.route('/delete/<assignment_name>')
+def delete(assignment_name):
+    # type: (str) -> Response
+    """Respond to a Flask route."""
+    raise NotImplementedError()
+
+
+@APP.route('/reload')
+def reload():
+    # type: () -> Response
+    """Respond to a Flask route."""
+    gradebook = APP.config['gradebook']
+    APP.config['gradebook'] = GradeBook(gradebook.csv_path)
+    return redirect(request.referrer)
+
+
+@APP.route('/save_score', methods=['POST'])
+def save_score():
+    # type: () -> Response
+    """Respond to a Flask route."""
+    data = json.loads(request.get_data())
+    gradebook = APP.config['gradebook']
+    gradebook.set_grade(data['alias'], data['assignment'], data['value'])
+    gradebook.write_csv()
+    curr_grade = gradebook.get_grade(data['alias'], data['assignment'])
+    changed_grades = []
+    while curr_grade.parent is not None:
+        curr_grade = curr_grade.parent
+        changed_grades.append(curr_grade)
+    result = [
         [f'{data["alias"]}__{grade.qualified_name}', grade.display_str]
         for grade in changed_grades
     ]
-    gradebook.save()
+    gradebook.write_csv()
     return json.dumps(result)
 
 
-@app.route('/static/css/<filename>')
+@APP.route('/static/css/<filename>')
 def get_css(filename):
+    # type: (str) -> Response
     """Serve CSS files."""
-    file_dir = app.config['root_directory'].joinpath('static', 'css')
+    file_dir = APP.config['root_directory'].joinpath('static', 'css')
     file_path = file_dir.joinpath(filename)
     if file_path.exists():
         return send_from_directory(str(file_dir), filename)
@@ -150,12 +178,34 @@ def get_css(filename):
         return abort(404)
 
 
-@app.route('/static/js/<filename>')
+@APP.route('/static/js/<filename>')
 def get_js(filename):
+    # type: (str) -> Response
     """Serve JavaScript files."""
-    file_dir = app.config['root_directory'].joinpath('static', 'js')
+    file_dir = APP.config['root_directory'].joinpath('static', 'js')
     file_path = file_dir.joinpath(filename)
     if file_path.exists():
         return send_from_directory(str(file_dir), filename)
     else:
         return abort(404)
+
+
+def configure_app(filepath):
+    # type: (Path) -> None
+    """Configure the app."""
+    APP.config['gradebook'] = GradeBook(filepath)
+    APP.config['root_directory'] = Path(__file__).parent.resolve()
+
+
+def main():
+    # type: () -> None
+    """Start the app."""
+    arg_parser = ArgumentParser()
+    arg_parser.add_argument('grades_file', type=Path, help='The grades CSV file.')
+    args = arg_parser.parse_args()
+    configure_app(args.grades_file)
+    APP.run(debug=True)
+
+
+if __name__ == '__main__':
+    main()

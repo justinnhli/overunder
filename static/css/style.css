@@ -1,13 +1,19 @@
 html {font-family:Arial; font-size:12pt;}
+a {color:#000000; font-weight:normal;}
 table {border-collapse:collapse;}
 th, td {border:1px solid #000000;}
-th div, td div {height:1.5em; max-height:1.5em; overflow:hidden;}
 td#topleft {text-align:center;}
 td.controls div {width:5em;}
 td.controls div a {text-decoration:none;}
-td.controls div a:hover {font-weight:bold;}
+td.controls span.pointer {cursor:pointer;}
+td.controls span.hidden {color:transparent; cursor:default;}
 th.student {vertical-align:bottom;}
 th.student div {height:auto; max-height:4em; overflow:hidden;}
 th.assignment div {text-align:left; width:15em;}
-td.grade, td.grade input {text-align:right; font-size:inherit;}
-td.grade input {min-width:7em; max-width:7em; height:1.25em; border:0;}
+th.assignment span.expander {font-family:monospace; cursor:pointer;}
+th.assignment span.expander-filler {font-family:monospace;}
+td.grade, td.grade input {text-align:right; font-size:inherit; min-width:7em; max-width:7em; height:1.25em; border:0; padding:0;}
+td.grade {border:1px solid #000000;}
+td.grade.readonly, td.grade.readonly input {background-color:#C0C0C0;}
+td.grade input {cursor:pointer;}
+td.grade input[readonly] {cursor:text;}
