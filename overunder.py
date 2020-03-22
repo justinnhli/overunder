@@ -248,14 +248,14 @@ class AssignmentGrade(NamedNode):
         """Initialize this AssignmentGrade."""
         super().__init__(assignment.name)
         self.assignment = assignment
-        self.grade_str = grade_str
+        self._grade_str = grade_str
         self.percent_grade = self._parse_grade_str()
 
     def _parse_grade_str(self):
         # type: () -> Optional[Fraction]
-        if self.grade_str.lower() == 'none':
+        if self._grade_str.lower() == 'none':
             return None
-        grade_str = self.grade_str
+        grade_str = self._grade_str
         negative = grade_str.startswith('-')
         if negative:
             grade_str = grade_str[1:]
@@ -292,7 +292,7 @@ class AssignmentGrade(NamedNode):
         # type: () -> str
         """Get a human-readable grade."""
         if self.is_leaf:
-            return self.grade_str
+            return self._grade_str
         else:
             return f'{float(self.percent_grade):.2%}'
 
@@ -319,7 +319,7 @@ class AssignmentGrade(NamedNode):
     def set_grade(self, grade_str):
         # type: (str) -> None
         """Set a new grade."""
-        self.grade_str = grade_str
+        self._grade_str = grade_str
         self.percent_grade = self._parse_grade_str()
         self.propagate()
 
