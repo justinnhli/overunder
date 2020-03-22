@@ -282,7 +282,7 @@ class AssignmentGrade(NamedNode):
 
     def __str__(self):
         # type: () -> str
-        return f'{self.name}{"*" if self.extra_credit else ""} ({self.weight_str}): {self.to_export_str()}'
+        return f'{self.name}{"*" if self.extra_credit else ""} ({self.weight_str}): {self.export_str}'
 
     @property
     def extra_credit(self):
@@ -305,6 +305,15 @@ class AssignmentGrade(NamedNode):
         else:
             return f'{float(self.percent_grade):.2%}'
 
+    @property
+    def export_str(self):
+        # type: () -> str
+        """Return this grade as a string for export."""
+        if self.is_leaf:
+            return self._grade_str
+        else:
+            return f'{float(self.minimum_grade):.2%}'
+
     def propagate(self):
         # type: () -> None
         """Propagate information from this NamedNode."""
@@ -322,14 +331,6 @@ class AssignmentGrade(NamedNode):
         self.grade_str = grade_str
         self.percent_grade = self._parse_grade_str()
         self.propagate()
-
-    def to_export_str(self):
-        # type: () -> str
-        """Return this grade as a string for export."""
-        if self.is_leaf:
-            return self.grade_str
-        else:
-            return f'{float(self.percent_grade):.2%}'
 
 
 class Student:
@@ -469,7 +470,7 @@ class GradeBook:
                 student = self.students[alias]
                 fd.write('\t'.join([
                     f'{student.last_name}, {student.first_name} <{student.email}>',
-                    *(assignment_grade.to_export_str() for assignment_grade in assignment_grade_root.traversal)
+                    *(assignment_grade.export_str for assignment_grade in assignment_grade_root.traversal)
                 ]))
                 fd.write('\n')
 
