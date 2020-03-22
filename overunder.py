@@ -418,7 +418,7 @@ class GradeBook:
         for assignment_grade_root in self.grades.values():
             assignment_grade_root.add_descendant(
                 qualified_name,
-                AssignmentGrade(assignment, '0%'), # FIXME initial grade
+                AssignmentGrade(assignment, 'None'),
             )
 
     def move_assignment_up(self, qualified_name):
