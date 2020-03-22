@@ -64,8 +64,6 @@ class NamedNode:
     def depth(self):
         # type: () -> int
         """Get the depth of the NamedNode."""
-        if self._depth is None:
-            self._update_depth()
         return self._depth
 
     @property
@@ -93,13 +91,6 @@ class NamedNode:
         yield self
         for child in self._children:
             yield from child.traversal
-
-    def _update_depth(self):
-        # type: () -> None
-        if self.parent is None:
-            self._depth = 0
-        else:
-            self._depth = self.parent.depth + 1
 
     def index_of(self, name):
         # type: (str) -> int
@@ -135,7 +126,7 @@ class NamedNode:
         """Add a child to this NamedNode."""
         self._children.append(node)
         node._parent = self
-        node._update_depth()
+        node._depth = self._depth + 1
         node.propagate()
 
     def add_descendant(self, qualified_name, node):
