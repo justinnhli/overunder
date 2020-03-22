@@ -1,13 +1,3 @@
-function toggle(qualified_name) {
-    $("." + qualified_name).toggle();
-    var expander = $("#" + qualified_name + "-expander");
-    if (expander.html() === "-") {
-        expander.html("+");
-    } else {
-        expander.html("-");
-    }
-}
-
 function save_score(input) {
     input = $(input);
     var alias = input.attr("id").split("__", 1)[0];
@@ -43,4 +33,14 @@ function create_child(qualified_name) {
             location.reload();
         });
     return false;
+}
+
+function toggle_descendants(qualified_name) {
+    $("." + qualified_name).toggle();
+    var expander = $("#" + qualified_name + "-expander");
+    if (expander.html() === "-") {
+        expander.html("+");
+    } else {
+        expander.html("-");
+    }
 }
