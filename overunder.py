@@ -248,34 +248,36 @@ class AssignmentGrade(NamedNode):
         """Initialize this AssignmentGrade."""
         super().__init__(assignment.name)
         self.assignment = assignment
+        # leaf variables
         self._grade_str = grade_str
-        self.percent_grade = self._parse_grade_str()
+        self._percent_grade = None # type: Optional[Fraction]
+        self.set_grade(grade_str)
 
-    def _parse_grade_str(self):
-        # type: () -> Optional[Fraction]
-        if self._grade_str.lower() == 'none':
+    def _parse_grade_str(self, grade_str):
+        # type: (str) -> Optional[Fraction]
+        # pylint: disable = no-self-use
+        if grade_str.lower() == 'none':
             return None
-        grade_str = self._grade_str
         negative = grade_str.startswith('-')
         if negative:
             grade_str = grade_str[1:]
         if grade_str.endswith('%'):
-            percent_grade = Fraction(grade_str[:-1]) / Fraction(100)
+            grade = Fraction(grade_str[:-1]) / Fraction(100)
         elif '/' in grade_str:
             numerator, denominator = grade_str.split('/')
             if numerator == '':
                 numerator = '0'
             if denominator == '':
                 denominator = '1'
-            percent_grade = Fraction(numerator) / Fraction(denominator)
+            grade = Fraction(numerator) / Fraction(denominator)
         elif re.fullmatch('[0-9.]*', grade_str):
-            percent_grade = Fraction(grade_str) / self.assignment.weight
+            grade = Fraction(grade_str) / self.assignment._weight
         else:
-            assert False
+            raise ValueError(f'invalid grade string: {grade_str}')
         if negative:
-            return 1 - percent_grade
+            return 1 - grade
         else:
-            return percent_grade
+            return grade
 
     def __str__(self):
         # type: () -> str
@@ -300,7 +302,7 @@ class AssignmentGrade(NamedNode):
         if self.is_leaf:
             return self._grade_str
         else:
-            return f'{float(self.percent_grade):.2%}'
+            return f'{float(self._percent_grade):.2%}'
 
     @property
     def export_str(self):
@@ -314,11 +316,8 @@ class AssignmentGrade(NamedNode):
     def propagate(self):
         # type: () -> None
         """Propagate information to ancestors."""
-        if not self.is_leaf:
-            self.percent_grade = sum(
-                child.percent_grade * child.assignment.percent_weight
-                for child in self.children
-            )
+        if self.is_leaf:
+            self._percent_grade = self._parse_grade_str(self._grade_str)
         if self.parent is not None:
             self.parent.propagate()
 
@@ -326,7 +325,6 @@ class AssignmentGrade(NamedNode):
         # type: (str) -> None
         """Set a new grade."""
         self._grade_str = grade_str
-        self.percent_grade = self._parse_grade_str()
         self.propagate()
 
 
