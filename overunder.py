@@ -540,6 +540,9 @@ def test():
     gradebook.remove_assignment('DataStructures__Homeworks__HW1__Q1a')
     tuple(gradebook.grades.values())[0].pretty_print()
     print()
+    gradebook.set_grade('mamir', 'DataStructures__Homeworks__HW1__Q1a', '1')
+    gradebook.grades['mamir'].pretty_print()
+    print()
     gradebook.write_csv()
 
 
