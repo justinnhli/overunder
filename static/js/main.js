@@ -1,4 +1,5 @@
 var SAVING = {};
+var FAILED = {};
 
 function save_score(input) {
     input = $(input);
@@ -11,7 +12,7 @@ function save_score(input) {
         "assignment": assignment,
         "value": value
     };
-    if (!(input_id in SAVING)) {
+    if (!(input_id in SAVING) || isNaN(SAVING[input_id]) || (input_id in FAILED)) {
         SAVING[input_id] = 0;
     }
     SAVING[input_id] += 1;
@@ -25,11 +26,12 @@ function save_score(input) {
             SAVING[input_id] -= 1;
             if (SAVING[input_id] === 0) {
                 delete SAVING[input_id];
+                delete FAILED[input_id];
                 input.css("background-color", "transparent");
             }
         })
         .fail(function () {
-            console.log("failed");
+            FAILED[input_id] = true;
         });
 }
 

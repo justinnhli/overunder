@@ -151,7 +151,10 @@ def save_score():
     """Respond to a Flask route."""
     data = json.loads(request.get_data())
     gradebook = APP.config['gradebook']
-    gradebook.set_grade(data['alias'], data['assignment'], data['value'])
+    try:
+        gradebook.set_grade(data['alias'], data['assignment'], data['value'])
+    except ValueError:
+        return abort(500)
     gradebook.write_csv()
     curr_grade = gradebook.get_grade(data['alias'], data['assignment'])
     changed_grades = []
