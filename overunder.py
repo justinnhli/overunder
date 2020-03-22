@@ -283,7 +283,10 @@ class AssignmentGrade(NamedNode):
 
     def __str__(self):
         # type: () -> str
-        return f'{self.assignment}: {self.export_str}'
+        return ' '.join([
+            f'{self.assignment}:',
+            ' / '.join(f'{float(grade):.2%}' for grade in (self.minimum_grade, self.partial_grade, self.maximum_grade)),
+        ])
 
     @property
     def extra_credit(self):
