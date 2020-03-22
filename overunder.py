@@ -288,6 +288,12 @@ class AssignmentGrade(NamedNode):
         return self.assignment.extra_credit
 
     @property
+    def percent_weight(self):
+        # type: () -> Fraction
+        """Get the weight as a percentage of its siblings' total."""
+        return self.assignment.percent_weight
+
+    @property
     def display_str(self):
         # type: () -> str
         """Get a human-readable grade."""
