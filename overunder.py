@@ -117,8 +117,8 @@ class NamedNode:
 
     def propagate(self):
         # type: () -> None
-        """Propagate information from this NamedNode."""
-        raise NotImplementedError()
+        """Propagate information to ancestors."""
+        pass
 
     def add_child(self, node):
         # type: (NamedNode) -> None
@@ -307,7 +307,7 @@ class AssignmentGrade(NamedNode):
 
     def propagate(self):
         # type: () -> None
-        """Propagate information from this NamedNode."""
+        """Propagate information to ancestors."""
         if not self.is_leaf:
             self.percent_grade = sum(
                 child.percent_grade * child.assignment.percent_weight
