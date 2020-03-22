@@ -279,7 +279,7 @@ class AssignmentGrade(NamedNode):
 
     def __str__(self):
         # type: () -> str
-        return f'{self.name}{"*" if self.extra_credit else ""} ({self.weight_str}): {self.export_str}'
+        return f'{self.assignment}: {self.export_str}'
 
     @property
     def extra_credit(self):
