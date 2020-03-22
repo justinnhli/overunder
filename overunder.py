@@ -310,7 +310,7 @@ class AssignmentGrade(NamedNode):
         if self.is_leaf:
             return self._grade_str
         else:
-            return f'{float(self._percent_grade):.2%}'
+            return f'{float(self._weighted_grade()):.2%}'
 
     @property
     def export_str(self):
@@ -331,6 +331,47 @@ class AssignmentGrade(NamedNode):
             self._has_grade = any(child.has_grade for child in self.children)
         if self.parent is not None:
             self.parent.propagate()
+
+    @property
+    def minimum_grade(self):
+        # type: () -> Fraction
+        """Get the grade if all ungraded assignments get 0%."""
+        return self._weighted_grade(default_grade=0)
+
+    @property
+    def partial_grade(self):
+        # type: () -> Fraction
+        """Get the grade ignoring all ungraded assignments."""
+        return self._weighted_grade()
+
+    @property
+    def maximum_grade(self):
+        # type: () -> Fraction
+        """Get the grade if all ungraded assignments get 100%."""
+        return self._weighted_grade(default_grade=1)
+
+    def _weighted_grade(self, default_grade=None):
+        # type: (Optional[Number]) -> Fraction
+        if not self.is_leaf:
+            total_grade = Fraction(0)
+            total_weight = Fraction(0)
+            for child in self.children:
+                if default_grade is None and not child.has_grade:
+                    continue
+                total_grade += child.percent_weight * child._weighted_grade(default_grade=default_grade)
+                if not child.extra_credit:
+                    total_weight += child.percent_weight
+            if total_weight == 0:
+                return Fraction(0)
+            else:
+                return total_grade / total_weight
+        elif self.has_grade:
+            return self._percent_grade
+        elif default_grade is None:
+            # only occurs if we get the weighted grade of an unset grade directly
+            return Fraction(0)
+        else:
+            return default_grade
 
     def set_grade(self, grade_str):
         # type: (str) -> None
