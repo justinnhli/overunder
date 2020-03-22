@@ -248,6 +248,8 @@ class AssignmentGrade(NamedNode):
         """Initialize this AssignmentGrade."""
         super().__init__(assignment.name)
         self.assignment = assignment
+        # variables
+        self._has_grade = False
         # leaf variables
         self._grade_str = grade_str
         self._percent_grade = None # type: Optional[Fraction]
@@ -296,6 +298,12 @@ class AssignmentGrade(NamedNode):
         return self.assignment.percent_weight
 
     @property
+    def has_grade(self):
+        # type: () -> bool
+        """Check if there is a grade for this assignment."""
+        return self._has_grade
+
+    @property
     def display_str(self):
         # type: () -> str
         """Get a human-readable grade."""
@@ -318,6 +326,9 @@ class AssignmentGrade(NamedNode):
         """Propagate information to ancestors."""
         if self.is_leaf:
             self._percent_grade = self._parse_grade_str(self._grade_str)
+            self._has_grade = self._percent_grade is not None
+        else:
+            self._has_grade = any(child.has_grade for child in self.children)
         if self.parent is not None:
             self.parent.propagate()
 
