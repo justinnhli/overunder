@@ -1,19 +1,31 @@
+var SAVING = {};
+
 function save_score(input) {
     input = $(input);
-    var alias = input.attr("id").split("__", 1)[0];
-    var assignment = input.attr("id").substring(alias.length + 2);
+    var input_id = input.attr("id");
+    var alias = input_id.split("__", 1)[0];
+    var assignment = input_id.substring(alias.length + 2);
     var value = input.val();
     var data = {
         "alias": alias,
         "assignment": assignment,
         "value": value
     };
+    if (!(input_id in SAVING)) {
+        SAVING[input_id] = 0;
+    }
+    SAVING[input_id] += 1;
+    input.css("background-color", "#E08080");
     $.post("/save_score", JSON.stringify(data))
         .done(function (response) {
             response = JSON.parse(response);
             for (var i = 0; i < response.length; i++) {
-                var id = "#" + response[i][0];
-                $(id).val(response[i][1]);
+                $("#" + response[i][0]).val(response[i][1]);
+            }
+            SAVING[input_id] -= 1;
+            if (SAVING[input_id] === 0) {
+                delete SAVING[input_id];
+                input.css("background-color", "transparent");
             }
         })
         .fail(function () {
