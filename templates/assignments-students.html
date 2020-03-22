@@ -59,7 +59,7 @@
                 {% for student in students %}
                 {% if gradebook.get_grade(student.alias, assignment.qualified_name).is_leaf %}
                 <td class="grade"><div>
-                    <input id="{{ student.alias }}__{{ assignment.qualified_name }}" type="text" value="{{ gradebook.get_grade(student.alias, assignment.qualified_name).grade_str }}" onkeyup="save_score(this);" onblur="save_score(this);">
+                    <input id="{{ student.alias }}__{{ assignment.qualified_name }}" type="text" value="{{ gradebook.get_grade(student.alias, assignment.qualified_name).display_str }}" onkeyup="save_score(this);" onblur="save_score(this);">
                 </div></td>
                 {% else %}
                 <td class="grade readonly"><div>
