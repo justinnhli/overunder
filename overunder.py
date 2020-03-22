@@ -205,33 +205,39 @@ class Assignment(NamedNode):
         # type: (str, str, bool) -> None
         """Initialize the Assignment."""
         super().__init__(name)
-        self.weight_str = weight_str
+        self._weight_str = weight_str
         self.extra_credit = extra_credit
-        self.weight = None # type: Optional[Fraction]
-        self.percent_weight = None # type: Optional[Fraction]
+        self._weight = self._parse_weight_str(self._weight_str)
+
+    def _parse_weight_str(self, weight_str):
+        # type: (str) -> Fraction
+        # pylint: disable = no-self-use
+        if weight_str.endswith('%'):
+            return Fraction(weight_str[:-1]) / Fraction(100)
+        elif '/' in weight_str:
+            numerator, denominator = weight_str.split('/')
+            return Fraction(numerator) / Fraction(denominator)
+        elif re.fullmatch('[0-9.]*', weight_str):
+            return Fraction(weight_str)
+        else:
+            raise ValueError(f'invalid weight string: {weight_str}')
 
     def __str__(self):
         # type: () -> str
-        return f'{self.name}{"*" if self.extra_credit else ""} ({self.weight_str})'
+        return f'{self.name}{"*" if self.extra_credit else ""} ({self._weight_str})'
 
-    def propagate(self):
-        # type: () -> None
-        """Propagate information from this NamedNode."""
-        if self.weight_str.endswith('%'):
-            self.weight = Fraction(self.weight_str[:-1]) / Fraction(100)
-            self.percent_weight = self.weight
-        elif '/' in self.weight_str:
-            numerator, denominator = self.weight_str.split('/')
-            self.weight = Fraction(numerator) / Fraction(denominator)
-            self.percent_weight = self.weight
-        elif re.fullmatch('[0-9.]*', self.weight_str):
-            assert self.parent is not None
-            self.weight = Fraction(self.weight_str)
-            parent_total = sum(child.weight for child in self.parent.children)
-            for child in self.parent.children:
-                child.percent_weight = child.weight / parent_total
+    @property
+    def percent_weight(self):
+        # type: () -> Fraction
+        """Get the weight as a percentage of its siblings' total."""
+        if self.parent is None:
+            return Fraction(1)
+        elif self._weight_str.endswith('%') or '/' in self._weight_str:
+            return self._weight
+        elif re.fullmatch('[0-9.]*', self._weight_str):
+            return self._weight / sum(child._weight for child in self.parent.children)
         else:
-            assert False
+            raise ValueError(f'invalid weight string: {self._weight_str}')
 
 
 class AssignmentGrade(NamedNode):
@@ -280,12 +286,6 @@ class AssignmentGrade(NamedNode):
         # type: () -> bool
         """Return whether this assignment is extra credit."""
         return self.assignment.extra_credit
-
-    @property
-    def weight_str(self):
-        # type: () -> str
-        """Get the weight of the assignment."""
-        return self.assignment.weight_str
 
     @property
     def display_str(self):
