@@ -213,18 +213,18 @@ class Assignment(NamedNode):
         super().__init__(name)
         self._weight_str = weight_str
         self.extra_credit = extra_credit
-        self._weight = self._parse_weight_str(self._weight_str)
+        self._weight, self._weight_type = self._parse_weight_str(self._weight_str)
 
     def _parse_weight_str(self, weight_str):
         # type: (str) -> Fraction
         # pylint: disable = no-self-use
         if weight_str.endswith('%'):
-            return Fraction(weight_str[:-1]) / Fraction(100)
+            return Fraction(weight_str[:-1]) / Fraction(100), 'percent'
         elif '/' in weight_str:
             numerator, denominator = weight_str.split('/')
-            return Fraction(numerator) / Fraction(denominator)
+            return Fraction(numerator) / Fraction(denominator), 'fraction'
         elif re.fullmatch('[0-9.]*', weight_str):
-            return Fraction(weight_str)
+            return Fraction(weight_str), 'points'
         else:
             raise ValueError(f'invalid weight string: {weight_str}')
 
@@ -244,6 +244,16 @@ class Assignment(NamedNode):
             return self._weight / sum(child._weight for child in self.parent.children)
         else:
             raise ValueError(f'invalid weight string: {self._weight_str}')
+
+    @property
+    def weight_display(self):
+        if self._weight_type == 'points':
+            if self._weight == 1:
+                return self._weight_str + 'pt'
+            else:
+                return self._weight_str + 'pts'
+        else:
+            return self._weight_str
 
 
 class AssignmentGrade(NamedNode):
