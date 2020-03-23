@@ -395,6 +395,9 @@ class Student:
         self.email = email
         self._alias = None # type: Optional[str]
 
+    def __str__(self):
+        return f'{self.last_name}, {self.first_name} <{self.email}>'
+
     @property
     def alias(self):
         # type: () -> str
