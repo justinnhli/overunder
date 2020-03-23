@@ -507,10 +507,14 @@ class GradeBook:
         """Set the grade for the student and assignment."""
         self.grades[alias][qualified_name].set_grade(grade_str)
 
-    def write_csv(self):
+    def write_csv(self, filename=None):
         # type: () -> None
         """Export the GradeBook to a csv file."""
-        with self.csv_path.parent.joinpath(self.csv_path.name).open('w') as fd:
+        if filename is None:
+            outpath = self.csv_path
+        else:
+            outpath = self.csv_path.parent.joinpath(filename)
+        with outpath.open('w') as fd:
             fd.write('\t'.join([
                 'Student',
                 *(assignment.to_heading() for assignment in self.assignments.traversal),
