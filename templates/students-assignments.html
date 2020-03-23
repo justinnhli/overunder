@@ -15,13 +15,13 @@
                     /
                     <a href="/reload">Reload</a>
                     /
-                    <a href="/assignments-students/{{ student_filter }}/{{ assignment_filter }}">Transpose</a>
+                    <a href="/assignments-students/{{ student_filter }}/{{ assignment_filter }}/">Transpose</a>
                     /
                     <a href="/students-assignments/all/all">Clear</a>
                 </td>
                 {% for assignment in assignments %}
                 <th>
-                    <a href="/students-assignments/{{ student_filter }}/{{ assignment.qualified_name }}">
+                    <a href="/students-assignments/{{ student_filter }}/{{ assignment.qualified_name }}/">
                         {{ assignment.name }}
                     </a>
                 </th>
@@ -30,7 +30,7 @@
             {% for student in students %}
             <tr>
                 <th>
-                    <a href="/students-assignments/{{ student.alias }}/{{ assignment_filter }}">
+                    <a href="/students-assignments/{{ student.alias }}/{{ assignment_filter }}/">
                         {{ student.first_name }} {{ student.last_name }}
                     </a>
                     <a href="mailto:{{ student.email }}">&#x2709;</a>

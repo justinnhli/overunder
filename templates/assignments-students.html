@@ -15,13 +15,13 @@
                     /
                     <a href="/reload">Reload</a>
                     /
-                    <a href="/students-assignments/{{ student_filter }}/{{ assignment_filter }}">Transpose</a>
+                    <a href="/students-assignments/{{ student_filter }}/{{ assignment_filter }}/">Transpose</a>
                     /
                     <a href="/assignments-students/all/all">Clear</a>
                 </td>
                 {% for student in students %}
                 <th class="student"><div>
-                    <a href="/assignments-students/{{ assignment_filter }}/{{ student.alias }}">{{ student.first_name }} {{ student.last_name }}</a><br>
+                    <a href="/assignments-students/{{ assignment_filter }}/{{ student.alias }}/">{{ student.first_name }} {{ student.last_name }}</a><br>
                     <a href="mailto:{{ student.email }}">&#x2709;</a>
                 </div></th>
                 {% endfor %}
@@ -52,7 +52,7 @@
                     {% else %}
                     <span class="expander" onclick="toggle_descendants('{{ assignment.qualified_name }}');">{{ (assignment.depth - min_depth) * '&nbsp;' | safe }}<span  id="{{ assignment.qualified_name }}-expander">-</span></span>
                     {% endif %}
-                    <a href="/assignments-students/{{ assignment.qualified_name }}/{{ student_filter }}">
+                    <a href="/assignments-students/{{ assignment.qualified_name }}/{{ student_filter }}/">
                         {{ assignment }}
                     </a>
                 </div></th>

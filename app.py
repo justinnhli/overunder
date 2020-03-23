@@ -46,7 +46,7 @@ def root():
     return redirect(url_for('view_assignments_students', student_filter='all', assignment_filter='all'))
 
 
-@APP.route('/students-assignments/<student_filter>/<assignment_filter>')
+@APP.route('/students-assignments/<student_filter>/<assignment_filter>/')
 def view_students_assignments(student_filter, assignment_filter):
     # type: (str, str) -> Response
     """Respond to a Flask route."""
@@ -75,7 +75,7 @@ def view_students_assignments(student_filter, assignment_filter):
     return render_template('students-assignments.html', **context)
 
 
-@APP.route('/assignments-students/<assignment_filter>/<student_filter>')
+@APP.route('/assignments-students/<assignment_filter>/<student_filter>/')
 def view_assignments_students(assignment_filter, student_filter):
     # type: (str, str) -> Response
     """Respond to a Flask route."""
