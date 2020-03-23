@@ -129,11 +129,12 @@ def create_child():
     return redirect(request.referrer)
 
 
-@APP.route('/delete/<assignment_name>')
-def delete(assignment_name):
+@APP.route('/delete/<qualified_name>')
+def delete(qualified_name):
     # type: (str) -> Response
     """Respond to a Flask route."""
-    raise NotImplementedError()
+    APP.config['gradebook'].remove_assignment(qualified_name)
+    return redirect(request.referrer)
 
 
 @APP.route('/reload')
