@@ -104,6 +104,12 @@ def view_assignments_students(assignment_filter, student_filter):
     return render_template('assignments-students.html', **context)
 
 
+@APP.route('/save')
+def save():
+    APP.config['gradebook'].write_csv()
+    return redirect(request.referrer)
+
+
 @APP.route('/reload')
 def reload():
     # type: () -> Response
