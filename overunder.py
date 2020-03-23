@@ -186,7 +186,7 @@ class NamedNode:
         return descendant.parent._children.pop(index) # pylint: disable = protected-access
 
     def to_heading(self, indent='__'):
-        # type: () -> str
+        # type: (str) -> str
         """Get the underscore-prefixed heading for this NamedNode."""
         return f'{self.depth * indent}{self}'
 
@@ -197,7 +197,7 @@ class NamedNode:
             print(line)
 
     def pretty_print_lines(self, indent='__'):
-        # type: (str) -> None
+        # type: (str) -> Generator[NamedNode, None, None]
         """Print the NamedNode and its descendants, with indentation."""
         yield self.to_heading(indent=indent)
         for child in self.children:
@@ -216,7 +216,7 @@ class Assignment(NamedNode):
         self._weight, self._weight_type = self._parse_weight_str(self._weight_str)
 
     def _parse_weight_str(self, weight_str):
-        # type: (str) -> Fraction
+        # type: (str) -> Tuple[Fraction, str]
         # pylint: disable = no-self-use
         if weight_str.endswith('%'):
             return Fraction(weight_str[:-1]) / Fraction(100), 'percent'
@@ -247,6 +247,8 @@ class Assignment(NamedNode):
 
     @property
     def weight_display(self):
+        # type: () -> str
+        """Get a human-readable weight."""
         if self._weight_type == 'points':
             if self._weight == 1:
                 return self._weight_str + 'pt'
@@ -412,6 +414,7 @@ class Student:
         self._alias = None # type: Optional[str]
 
     def __str__(self):
+        # type: () -> str
         return f'{self.last_name}, {self.first_name} <{self.email}>'
 
     @property
@@ -528,7 +531,7 @@ class GradeBook:
         self.grades[alias][qualified_name].set_grade(grade_str)
 
     def write_csv(self, filename=None):
-        # type: () -> None
+        # type: (Optional[str]) -> None
         """Export the GradeBook to a csv file."""
         if filename is None:
             outpath = self.csv_path
