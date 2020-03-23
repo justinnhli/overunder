@@ -1,6 +1,7 @@
 html {font-family:Arial; font-size:12pt;}
 a {color:#000000; font-weight:normal;}
 table {border-collapse:collapse;}
+th {font-weight:normal;}
 th, td {border:1px solid #000000;}
 td#topleft {text-align:center;}
 td.controls div {width:5em;}
