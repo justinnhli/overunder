@@ -109,7 +109,6 @@ def view_assignments_students(assignment_filter, student_filter):
 
 @APP.route('/save')
 def save():
-    save_backup()
     APP.config['gradebook'].write_csv()
     return redirect(request.referrer)
 
@@ -118,7 +117,6 @@ def save():
 def reload():
     # type: () -> Response
     """Respond to a Flask route."""
-    save_backup()
     APP.config['gradebook'] = GradeBook(APP.config['gradebook'].csv_path)
     return redirect(request.referrer)
 
@@ -127,7 +125,6 @@ def reload():
 def move_up(qualified_name):
     # type: (str) -> Response
     """Respond to a Flask route."""
-    save_backup()
     APP.config['gradebook'].move_assignment_up(qualified_name)
     return redirect(request.referrer)
 
@@ -136,7 +133,6 @@ def move_up(qualified_name):
 def move_down(qualified_name):
     # type: (str) -> Response
     """Respond to a Flask route."""
-    save_backup()
     APP.config['gradebook'].move_assignment_down(qualified_name)
     return redirect(request.referrer)
 
@@ -145,7 +141,6 @@ def move_down(qualified_name):
 def create_child():
     # type: () -> Response
     """Respond to a Flask route."""
-    save_backup()
     data = json.loads(request.get_data())
     APP.config['gradebook'].add_assignment(data['qualified_name'], data['weight_str'])
     return redirect(request.referrer)
@@ -155,7 +150,6 @@ def create_child():
 def delete(qualified_name):
     # type: (str) -> Response
     """Respond to a Flask route."""
-    save_backup()
     APP.config['gradebook'].remove_assignment(qualified_name)
     return redirect(request.referrer)
 
@@ -164,7 +158,6 @@ def delete(qualified_name):
 def save_score():
     # type: () -> Response
     """Respond to a Flask route."""
-    save_backup()
     data = json.loads(request.get_data())
     gradebook = APP.config['gradebook']
     try:
