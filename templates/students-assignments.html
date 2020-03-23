@@ -1,29 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Over/Under</title>
-    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    {% block javascript %}{% endblock %}
-</head>
-<body>
-    <table>
-        <tr>
-            <td id="topleft"><a href="/assignments-students/{{ assignment_name }}/{{ email }}">Transpose</a></td>
-            {% for assignment in assignments %}
-            <th>{{ assignment.name }}</th>
+    <head>
+        <meta charset="UTF-8">
+        <title>Over/Under</title>
+        <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="/static/js/main.js"></script>
+    </head>
+    <body>
+        <table>
+            <tr>
+                <td id="topleft">
+                    <a href="/save">Save</a>
+                    /
+                    <a href="/reload">Reload</a>
+                    /
+                    <a href="/assignments-students/{{ student_filter }}/{{ assignment_filter }}">Transpose</a>
+                    /
+                    <a href="/students-assignments/all/all">Clear</a>
+                </td>
+                {% for assignment in assignments %}
+                <th>
+                    <a href="/students-assignments/{{ student_filter }}/{{ assignment.qualified_name }}">
+                        {{ assignment.name }}
+                    </a>
+                </th>
+                {% endfor %}
+            </tr>
+            {% for student in students %}
+            <tr>
+                <th>
+                    <a href="/students-assignments/{{ student.alias }}/{{ assignment_filter }}">
+                        {{ student.first_name }} {{ student.last_name }}
+                    </a>
+                    <a href="mailto:{{ student.email }}">&#x2709;</a>
+                </th>
+                {% for assignment in assignments %}
+                <td>{{ gradebook.get_grade(student.alias, assignment.qualified_name).display_str }}</td>
+                {% endfor %}
+            </tr>
             {% endfor %}
-        </tr>
-        {% for student in students %}
-        <tr>
-            <th>{{ student }}</th>
-            {% for assignment in assignments %}
-            <td>{{ gradebook.get(student, assignment.qualified_name).score }}</td>
-            {% endfor %}
-        </tr>
-        {% endfor %}
 
-    </table>
-</body>
+        </table>
+    </body>
 </html>

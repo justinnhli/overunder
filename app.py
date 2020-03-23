@@ -59,11 +59,11 @@ def view_students_assignments(student_filter, assignment_filter):
             if assignment.qualified_name.startswith(assignment_filter)
         )
     if student_filter == 'all':
-        students = list(gradebook.grades.keys())
+        students = list(gradebook.students.values())
     else:
         students = list(
-            student for student in gradebook.grades.keys()
-            if student_filter in student
+            student for student in gradebook.grades.values()
+            if student.alias == student_filter
         )
     context = {
         'student_filter': student_filter,
