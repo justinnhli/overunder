@@ -50,11 +50,12 @@ function create_child(qualified_name) {
 }
 
 function toggle_descendants(qualified_name) {
-    $("." + qualified_name).toggle();
     var expander = $("#" + qualified_name + "-expander");
     if (expander.html() === "-") {
         expander.html("+");
+        $("." + qualified_name).hide();
     } else {
         expander.html("-");
+        $("." + qualified_name).show();
     }
 }
