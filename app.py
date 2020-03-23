@@ -104,6 +104,14 @@ def view_assignments_students(assignment_filter, student_filter):
     return render_template('assignments-students.html', **context)
 
 
+@APP.route('/reload')
+def reload():
+    # type: () -> Response
+    """Respond to a Flask route."""
+    APP.config['gradebook'] = GradeBook(APP.config['gradebook'].csv_path)
+    return redirect(request.referrer)
+
+
 @APP.route('/move-up/<qualified_name>')
 def move_up(qualified_name):
     # type: (str) -> Response
@@ -134,15 +142,6 @@ def delete(qualified_name):
     # type: (str) -> Response
     """Respond to a Flask route."""
     APP.config['gradebook'].remove_assignment(qualified_name)
-    return redirect(request.referrer)
-
-
-@APP.route('/reload')
-def reload():
-    # type: () -> Response
-    """Respond to a Flask route."""
-    gradebook = APP.config['gradebook']
-    APP.config['gradebook'] = GradeBook(gradebook.csv_path)
     return redirect(request.referrer)
 
 
