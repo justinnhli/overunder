@@ -1,8 +1,9 @@
 """A gradebook webapp."""
 
 import json
-from pathlib import Path
 from argparse import ArgumentParser
+from datetime import datetime, timedelta
+from pathlib import Path
 
 from overunder import GradeBook
 
@@ -106,6 +107,7 @@ def view_assignments_students(assignment_filter, student_filter):
 
 @APP.route('/save')
 def save():
+    save_backup()
     APP.config['gradebook'].write_csv()
     return redirect(request.referrer)
 
@@ -114,6 +116,7 @@ def save():
 def reload():
     # type: () -> Response
     """Respond to a Flask route."""
+    save_backup()
     APP.config['gradebook'] = GradeBook(APP.config['gradebook'].csv_path)
     return redirect(request.referrer)
 
@@ -122,6 +125,7 @@ def reload():
 def move_up(qualified_name):
     # type: (str) -> Response
     """Respond to a Flask route."""
+    save_backup()
     APP.config['gradebook'].move_assignment_up(qualified_name)
     return redirect(request.referrer)
 
@@ -130,6 +134,7 @@ def move_up(qualified_name):
 def move_down(qualified_name):
     # type: (str) -> Response
     """Respond to a Flask route."""
+    save_backup()
     APP.config['gradebook'].move_assignment_down(qualified_name)
     return redirect(request.referrer)
 
@@ -138,6 +143,7 @@ def move_down(qualified_name):
 def create_child():
     # type: () -> Response
     """Respond to a Flask route."""
+    save_backup()
     data = json.loads(request.get_data())
     APP.config['gradebook'].add_assignment(data['qualified_name'], data['weight_str'])
     return redirect(request.referrer)
@@ -147,6 +153,7 @@ def create_child():
 def delete(qualified_name):
     # type: (str) -> Response
     """Respond to a Flask route."""
+    save_backup()
     APP.config['gradebook'].remove_assignment(qualified_name)
     return redirect(request.referrer)
 
@@ -155,6 +162,7 @@ def delete(qualified_name):
 def save_score():
     # type: () -> Response
     """Respond to a Flask route."""
+    save_backup()
     data = json.loads(request.get_data())
     gradebook = APP.config['gradebook']
     try:
@@ -199,11 +207,22 @@ def get_js(filename):
         return abort(404)
 
 
+def save_backup(force=False):
+    now = datetime.now()
+    if force or now - APP.config['last_backup'] > timedelta(minutes=5):
+        gradebook = APP.config['gradebook']
+        csv_name = gradebook.csv_path.name
+        timestamp = now.strftime('%Y%m%d%H%M%S')
+        gradebook.write_csv(filename=f'{csv_name}.{timestamp}.bak')
+        APP.config['last_backup'] = now
+
+
 def configure_app(filepath):
     # type: (Path) -> None
     """Configure the app."""
     APP.config['gradebook'] = GradeBook(filepath)
     APP.config['root_directory'] = Path(__file__).parent.resolve()
+    APP.config['last_backup'] = datetime.now()
 
 
 def main():
@@ -213,6 +232,7 @@ def main():
     arg_parser.add_argument('grades_file', type=Path, help='The grades CSV file.')
     args = arg_parser.parse_args()
     configure_app(args.grades_file)
+    save_backup(force=True)
     APP.run(debug=True)
 
 
