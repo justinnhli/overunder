@@ -185,17 +185,23 @@ class NamedNode:
         index = descendant.parent.index_of(names[-1])
         return descendant.parent._children.pop(index) # pylint: disable = protected-access
 
-    def to_heading(self):
+    def to_heading(self, indent='__'):
         # type: () -> str
         """Get the underscore-prefixed heading for this NamedNode."""
-        return f'{self.depth * "__"}{self}'
+        return f'{self.depth * indent}{self}'
 
-    def pretty_print(self, depth=0):
-        # type: (int) -> None
+    def pretty_print(self):
+        # type: () -> None
         """Print the NamedNode and its descendants, with indentation."""
-        print(self.to_heading())
+        for line in self.pretty_print_lines(indent='  '):
+            print(line)
+
+    def pretty_print_lines(self, indent='__'):
+        # type: (str) -> None
+        """Print the NamedNode and its descendants, with indentation."""
+        yield self.to_heading(indent=indent)
         for child in self.children:
-            child.pretty_print(depth + 1)
+            yield from child.pretty_print_lines()
 
 
 class Assignment(NamedNode):
