@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """A gradebook webapp."""
 
+import atexit
 import json
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
@@ -234,6 +235,7 @@ def main():
     args = arg_parser.parse_args()
     configure_app(args.grades_file)
     save_backup(force=True)
+    atexit.register(APP.config['gradebook'].write_csv)
     APP.run(debug=True)
 
 
