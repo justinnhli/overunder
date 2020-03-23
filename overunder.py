@@ -260,6 +260,7 @@ class AssignmentGrade(NamedNode):
         # pylint: disable = no-self-use
         if grade_str.lower() == 'none':
             return None
+        grade_str = grade_str.strip('+')
         negative = grade_str.startswith('-')
         if negative:
             grade_str = grade_str[1:]
