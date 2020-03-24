@@ -29,7 +29,7 @@ function save_score(input) {
         SAVING[input_id] = 0;
     }
     SAVING[input_id] += 1;
-    input.parent().parent().css("background-color", "#FFE150");
+    input.parent().parent().css("background-color", "#FCE8AF");
     $.post("/save_score", JSON.stringify(data))
         .done(function (response) {
             response = JSON.parse(response);
@@ -45,7 +45,7 @@ function save_score(input) {
         })
         .fail(function () {
             FAILED[input_id] = true;
-            input.parent().parent().css("background-color", "#E08080");
+            input.parent().parent().css("background-color", "#F5C7C3");
         });
 }
 
