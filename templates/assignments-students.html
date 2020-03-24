@@ -67,14 +67,7 @@
                         onkeyup="save_score(this);">
                 </div></td>
                 {% else %}
-                <td class="grade readonly"><div>
-                        <input
-                            type="text"
-                            readonly
-                            id="{{ student.alias }}__{{ assignment.qualified_name }}"
-                            value="{{ gradebook.get_grade(student.alias, assignment.qualified_name).display_str }}"
-                            tabindex="-1">
-                </div></td>
+                <td class="grade readonly">{{ gradebook.get_grade(student.alias, assignment.qualified_name).display_str }}</td>
                 {% endif %}
                 {% endfor %}
             </tr>
