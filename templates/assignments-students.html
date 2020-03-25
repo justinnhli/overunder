@@ -52,7 +52,7 @@
                     {% else %}
                     <span class="expander" onclick="toggle_descendants('{{ assignment.qualified_name }}');">{{ (assignment.depth - min_depth) * '&nbsp;' | safe }}<span  id="{{ assignment.qualified_name }}-expander">-</span></span>
                     {% endif %}
-                    <a href="/assignments-students/{{ assignment.qualified_name }}/{{ student_filter }}/">{{ assignment.name }}</a>
+                    <a href="/assignments-students/{{ assignment.qualified_name }}/{{ student_filter }}/">{{ assignment.name }}</a>{% if assignment.extra_credit %}*{% endif %}
                     ({{ assignment.weight_display }})
                 </div></th>
                 {% for student in students %}
