@@ -34,7 +34,7 @@ function save_score(input) {
         .done(function (response) {
             response = JSON.parse(response);
             for (var i = 0; i < response.length; i++) {
-                $("#" + response[i][0]).val(response[i][1]);
+                $("#" + response[i][0]).html(response[i][1]);
             }
             SAVING[input_id] -= 1;
             if (SAVING[input_id] === 0) {
