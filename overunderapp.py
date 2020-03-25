@@ -200,14 +200,12 @@ def get_js(filename):
         return abort(404)
 
 
-def save_backup(force=False):
-    now = datetime.now()
-    if force or now - APP.config['last_backup'] > timedelta(minutes=5):
-        gradebook = APP.config['gradebook']
-        csv_name = gradebook.csv_path.name
-        timestamp = now.strftime('%Y%m%d%H%M%S')
-        gradebook.write_csv(filename=f'{csv_name}.{timestamp}.bak')
-        APP.config['last_backup'] = now
+def save_backup():
+    # type: (bool) -> None
+    gradebook = APP.config['gradebook']
+    csv_name = gradebook.csv_path.name
+    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    gradebook.write_csv(filename=f'{csv_name}.{timestamp}.bak')
 
 
 def configure_app(filepath):
@@ -215,7 +213,6 @@ def configure_app(filepath):
     """Configure the app."""
     APP.config['gradebook'] = GradeBook(filepath)
     APP.config['root_directory'] = Path(__file__).parent.resolve()
-    APP.config['last_backup'] = datetime.now()
 
 
 def main():
@@ -225,8 +222,8 @@ def main():
     arg_parser.add_argument('grades_file', type=Path, help='The grades CSV file.')
     args = arg_parser.parse_args()
     configure_app(args.grades_file)
-    save_backup(force=True)
-    atexit.register(APP.config['gradebook'].write_csv)
+    save_backup()
+    atexit.register(lambda: APP.config['gradebook'].write_csv())
     APP.run(debug=True)
 
 
