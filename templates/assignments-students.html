@@ -64,7 +64,7 @@
                         value="{{ gradebook.get_grade(student.alias, assignment.qualified_name).display_str }}"
                         onfocus="focus_cell(this);"
                         onblur="blur_cell(this);"
-                        onkeyup="save_score(this);">
+                        onkeyup="update_score(this);">
                 </div></td>
                 {% else %}
                 <td class="grade readonly" id="{{ student.alias }}__{{ assignment.qualified_name }}">{{ gradebook.get_grade(student.alias, assignment.qualified_name).display_str }}</td>

@@ -11,10 +11,10 @@ function blur_cell(input) {
     input = $(input);
     input.parent().parent().css("border", "1px solid #ECECEC");
     input.css("box-shadow", "");
-    save_score(input);
+    update_score(input);
 }
 
-function save_score(input) {
+function update_score(input) {
     input = $(input);
     var input_id = input.attr("id");
     var alias = input_id.split("__", 1)[0];
@@ -30,7 +30,7 @@ function save_score(input) {
     }
     SAVING[input_id] += 1;
     input.parent().parent().css("background-color", "#FCE8AF");
-    $.post("/save_score", JSON.stringify(data))
+    $.post("/update_score", JSON.stringify(data))
         .done(function (response) {
             response = JSON.parse(response);
             for (var i = 0; i < response.length; i++) {

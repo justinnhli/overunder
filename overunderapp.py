@@ -154,27 +154,25 @@ def delete(qualified_name):
     return redirect(request.referrer)
 
 
-@APP.route('/save_score', methods=['POST'])
-def save_score():
+@APP.route('/update_score', methods=['POST'])
+def update_score():
     # type: () -> Response
     """Respond to a Flask route."""
     data = json.loads(request.get_data())
-    gradebook = APP.config['gradebook']
+    grade = APP.config['gradebook'].get_grade(data['alias'], data['assignment'])
+    if grade.display_str == data['value']:
+        return json.dumps([])
     try:
-        gradebook.set_grade(data['alias'], data['assignment'], data['value'])
+        grade.set_grade(data['value'])
     except ValueError:
         return abort(500)
-    gradebook.write_csv()
-    curr_grade = gradebook.get_grade(data['alias'], data['assignment'])
-    changed_grades = []
-    while curr_grade.parent is not None:
-        curr_grade = curr_grade.parent
-        changed_grades.append(curr_grade)
-    result = [
-        [f'{data["alias"]}__{grade.qualified_name}', grade.display_str]
-        for grade in changed_grades
-    ]
-    gradebook.write_csv()
+    result = []
+    while grade.parent is not None:
+        grade = grade.parent
+        result.append([
+            f'{data["alias"]}__{grade.qualified_name}',
+            grade.display_str,
+        ])
     return json.dumps(result)
 
 
