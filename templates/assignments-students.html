@@ -67,7 +67,11 @@
                         onkeyup="update_score(this);">
                 </div></td>
                 {% else %}
-                <td class="grade readonly" id="{{ student.alias }}__{{ assignment.qualified_name }}">{{ gradebook.get_grade(student.alias, assignment.qualified_name).display_str }}</td>
+                <td class="grade readonly" id="{{ student.alias }}__{{ assignment.qualified_name }}">
+                    <abbr title="{{ gradebook.get_grade(student.alias, assignment.qualified_name).projection_str }}">
+                        {{ gradebook.get_grade(student.alias, assignment.qualified_name).display_str }}
+                    </abbr>
+                </td>
                 {% endif %}
                 {% endfor %}
             </tr>

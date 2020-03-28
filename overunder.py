@@ -353,6 +353,19 @@ class AssignmentGrade(NamedNode):
         return self._has_grade
 
     @property
+    def projection_str(self):
+        # type: () -> str
+        """Get a multi-line human-readable grade projection."""
+        minimum_grade = self.minimum_grade
+        partial_grade = self.partial_grade
+        maximum_grade = self.maximum_grade
+        return '\n'.join([
+            f'Minimum: {float(minimum_grade):.2%} ({self.letter_grade(minimum_grade)})',
+            f'Partial: {float(partial_grade):.2%} ({self.letter_grade(partial_grade)})',
+            f'Maximum: {float(maximum_grade):.2%} ({self.letter_grade(maximum_grade)})',
+        ])
+
+    @property
     def display_str(self):
         # type: () -> str
         """Get a human-readable grade."""
@@ -421,6 +434,14 @@ class AssignmentGrade(NamedNode):
             return Fraction(0)
         else:
             return default_grade
+
+    def letter_grade(self, fraction):
+        # type: (Fraction) -> str
+        """Get the letter grade associated with the percentage."""
+        for letter, boundary in self.LETTER_FRACTIONS.items():
+            if fraction < boundary:
+                return letter
+        return 'A'
 
     def set_grade(self, grade_str):
         # type: (str) -> None
