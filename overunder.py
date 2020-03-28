@@ -264,6 +264,20 @@ class AssignmentGrade(NamedNode):
     PERCENT_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?%')
     FRACTION_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?/([0-9]*)(\.[0-9]+)?')
     SCORE_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?')
+    LETTER_REGEX = re.compile(r'[A-F][+-]?(/[A-F][+-]?)?')
+    LETTER_FRACTIONS = {
+        'F': Fraction(180, 300),
+        'D': Fraction(195, 300),
+        'D+': Fraction(210, 300),
+        'C-': Fraction(220, 300),
+        'C': Fraction(230, 300),
+        'C+': Fraction(240, 300),
+        'B-': Fraction(250, 300),
+        'B': Fraction(260, 300),
+        'B+': Fraction(270, 300),
+        'A-': Fraction(285, 300),
+        'A': Fraction(300, 300),
+    }
 
     def __init__(self, assignment, grade_str):
         # type: (Assignment, str) -> None
@@ -282,7 +296,7 @@ class AssignmentGrade(NamedNode):
         # pylint: disable = no-self-use
         if grade_str.lower() == 'none':
             return None
-        grade_str = grade_str.strip('+')
+        grade_str = grade_str.lstrip('+')
         negative = grade_str.startswith('-')
         if negative:
             grade_str = grade_str[1:]
@@ -297,6 +311,15 @@ class AssignmentGrade(NamedNode):
             grade = Fraction(numerator) / Fraction(denominator)
         elif self.SCORE_REGEX.fullmatch(grade_str):
             grade = Fraction(grade_str) / self.assignment._weight
+        elif self.LETTER_REGEX.fullmatch(grade_str):
+            if '/' in grade_str:
+                lower, upper = grade_str.split('/')
+                grade = (
+                    self.LETTER_FRACTIONS[lower]
+                    + self.LETTER_FRACTIONS[upper]
+                ) / 2
+            else:
+                grade = self.LETTER_FRACTIONS[grade_str]
         else:
             raise ValueError(f'invalid grade string: {grade_str}')
         if negative:
