@@ -261,6 +261,10 @@ class Assignment(NamedNode):
 class AssignmentGrade(NamedNode):
     """A grade for a specific assignment."""
 
+    PERCENT_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?%')
+    FRACTION_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?/([0-9]*)(\.[0-9]+)?')
+    SCORE_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?')
+
     def __init__(self, assignment, grade_str):
         # type: (Assignment, str) -> None
         """Initialize this AssignmentGrade."""
@@ -282,16 +286,16 @@ class AssignmentGrade(NamedNode):
         negative = grade_str.startswith('-')
         if negative:
             grade_str = grade_str[1:]
-        if grade_str.endswith('%'):
+        if self.PERCENT_REGEX.fullmatch(grade_str):
             grade = Fraction(grade_str[:-1]) / Fraction(100)
-        elif '/' in grade_str:
+        elif self.FRACTION_REGEX.fullmatch(grade_str):
             numerator, denominator = grade_str.split('/')
             if numerator == '':
                 numerator = '0'
             if denominator == '':
                 denominator = '1'
             grade = Fraction(numerator) / Fraction(denominator)
-        elif re.fullmatch('[0-9.]*', grade_str):
+        elif self.SCORE_REGEX.fullmatch(grade_str):
             grade = Fraction(grade_str) / self.assignment._weight
         else:
             raise ValueError(f'invalid grade string: {grade_str}')
