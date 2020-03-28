@@ -15,7 +15,6 @@ th.assignment span.expander {font-family:monospace; cursor:pointer;}
 th.assignment span.expander-filler {font-family:monospace;}
 td.grade, td.grade input {text-align:right; font-size:inherit; min-width:7em; max-width:7em; height:1.25em; border:0; padding:0;}
 td.grade {border:1px solid #ECECEC;}
-td.grade.readonly, td.grade.readonly input {background-color:#C0C0C0;}
+td.grade.readonly {background-color:#C0C0C0;}
 td.grade div {background-color:transparent;}
 td.grade input {background-color:transparent; cursor:cell;}
-td.grade input[readonly] {cursor:text;}
