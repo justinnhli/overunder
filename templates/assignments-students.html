@@ -53,7 +53,7 @@
                     <span class="expander" onclick="toggle_descendants('{{ assignment.qualified_name }}');">{{ (assignment.depth - min_depth) * '&nbsp;' | safe }}<span  id="{{ assignment.qualified_name }}-expander">-</span></span>
                     {% endif %}
                     <a href="/assignments-students/{{ assignment.qualified_name }}/{{ student_filter }}/">{{ assignment.name }}</a>{% if assignment.extra_credit %}*{% endif %}
-                    ({{ assignment.weight_display }})
+                    (<abbr title="{{ assignment.percent_weight_str }}">{{ assignment.weight_display }}</abbr>)
                 </div></th>
                 {% for student in students %}
                 {% if gradebook.get_grade(student.alias, assignment.qualified_name).is_leaf %}

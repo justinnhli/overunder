@@ -257,6 +257,12 @@ class Assignment(NamedNode):
         else:
             return self._weight_str
 
+    @property
+    def percent_weight_str(self):
+        # type: () -> str
+        """Get the percentage weight as a str."""
+        return f'{float(self.percent_weight):.2%}'
+
 
 class AssignmentGrade(NamedNode):
     """A grade for a specific assignment."""
