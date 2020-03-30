@@ -207,10 +207,11 @@ class NamedNode:
 class Assignment(NamedNode):
     """An assignment with a specific weight."""
 
-    def __init__(self, name, weight_str, extra_credit=False):
-        # type: (str, str, bool) -> None
+    def __init__(self, name, weight_str, extra_credit=False, scale_boundaries=None):
+        # type: (str, str, bool, Optional(List[Fraction])) -> None
         """Initialize the Assignment."""
         super().__init__(name)
+        self.grade_scale = GradeScale(scale_boundaries)
         self._weight_str = weight_str
         self.extra_credit = extra_credit
         self._weight, self._weight_type = self._parse_weight_str(self._weight_str)
@@ -258,6 +259,109 @@ class Assignment(NamedNode):
             return self._weight_str
 
 
+class GradeScale:
+    """A grading scale."""
+
+    LETTERS = ['F', 'D', 'D+', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A']
+
+    def __init__(self, boundaries=None):
+        # type: (Optional[List[Fraction]]) -> None
+        """Initialize this GradeScale."""
+        if boundaries is None:
+            boundaries = (
+                Fraction(0, 300),
+                Fraction(180, 300),
+                Fraction(195, 300),
+                Fraction(210, 300),
+                Fraction(220, 300),
+                Fraction(230, 300),
+                Fraction(240, 300),
+                Fraction(250, 300),
+                Fraction(260, 300),
+                Fraction(270, 300),
+                Fraction(285, 300),
+                Fraction(300, 300),
+            )
+        self.boundaries = boundaries
+
+    def __eq__(self, other):
+        if not isinstance(other, GradeScale):
+            return False
+        return self.boundaries == other.boundaries
+
+    def from_fraction(self, fraction):
+        # type: (Fraction) -> Grade
+        """Create a Grade from fraction."""
+        index = 0
+        while self.boundaries[index] < fraction:
+            index += 1
+        return Grade(self, fraction, self.LETTERS[index - 1], self._index_to_gpa(index))
+
+    def _from_index(self, index, anchor='maximum'):
+        # type: (int, str) -> Fraction
+        if anchor == 'minimum':
+            return self.boundaries[index]
+        elif anchor == 'maximum':
+            return self.boundaries[index + 1]
+        elif anchor == 'median':
+            return (self.boundaries[index] + self.boundaries[index + 1]) / 2
+        else:
+            raise ValueError(f'invalid anchor "{anchor}"')
+
+    def from_letter(self, letter, anchor='maximum'):
+        # type: (str, str) -> Fraction
+        """Create a Grade from a letter grade."""
+        return self._from_index(self.LETTERS.index(letter), anchor=anchor)
+
+    def from_gpa(self, gpa, anchor='maximum'):
+        # type: (str) -> Fraction
+        """Create a Grade from GPA."""
+        return self._from_index(self._gpa_to_index(index), anchor=anchor)
+
+    @staticmethod
+    def _index_to_gpa(self, index):
+        # type: (int) -> Fraction
+        if index == 0:
+            return Fraction(0)
+        else:
+            return (index // 3) + 1 + ((index % 3) - 1) * Fraction(3, 10)
+
+    @staticmethod
+    def _gpa_to_index(gpa):
+        # type: (Fraction) -> int
+        if gpa == 0:
+            return 0
+        else:
+            return ((gpa - 1) // 1) * 3 + 1 + ((gpa % 1) // .3)
+
+
+class Grade:
+    """A grade."""
+
+    def __init__(self, scale, fraction, letter, gpa):
+        # type: (GradeScale, str, Fraction, Fraction) -> None
+        """Initialize this Grade."""
+        self.scale = scale
+        self.fraction = fraction
+        self.letter = letter
+        self.gpa = gpa
+
+    def __add__(self, other):
+        assert isinstance(other, Grade)
+        if self.scale != other.scale:
+            raise ValueError('cannot multiply two Grades with difference scales')
+        return self.scale.from_fraction(self.fraction + other.fraction)
+
+    def __mul__(self, other):
+        assert isinstance(other, Grade)
+        if self.scale != other.scale:
+            raise ValueError('cannot multiply two Grades with difference scales')
+        return self.scale.from_fraction(self.fraction * other.fraction)
+
+    def __str__(self):
+        pass
+
+
 class AssignmentGrade(NamedNode):
     """A grade for a specific assignment."""
 
@@ -265,19 +369,6 @@ class AssignmentGrade(NamedNode):
     FRACTION_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?/([0-9]*)(\.[0-9]+)?')
     SCORE_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?')
     LETTER_REGEX = re.compile(r'[A-F][+-]?(/[A-F][+-]?)?')
-    LETTER_FRACTIONS = {
-        'F': Fraction(180, 300),
-        'D': Fraction(195, 300),
-        'D+': Fraction(210, 300),
-        'C-': Fraction(220, 300),
-        'C': Fraction(230, 300),
-        'C+': Fraction(240, 300),
-        'B-': Fraction(250, 300),
-        'B': Fraction(260, 300),
-        'B+': Fraction(270, 300),
-        'A-': Fraction(285, 300),
-        'A': Fraction(300, 300),
-    }
 
     def __init__(self, assignment, grade_str):
         # type: (Assignment, str) -> None
@@ -315,11 +406,11 @@ class AssignmentGrade(NamedNode):
             if '/' in grade_str:
                 lower, upper = grade_str.split('/')
                 grade = (
-                    self.LETTER_FRACTIONS[lower]
-                    + self.LETTER_FRACTIONS[upper]
+                    self.grade_scale.from_letter(lower)
+                    + self.grade_scale.from_letter(upper)
                 ) / 2
             else:
-                grade = self.LETTER_FRACTIONS[grade_str]
+                grade = self.grade_scale.from_letter(grade_str)
         else:
             raise ValueError(f'invalid grade string: {grade_str}')
         if negative:
@@ -332,6 +423,7 @@ class AssignmentGrade(NamedNode):
         return ' '.join([
             f'{self.assignment}:',
             ' / '.join(f'{float(grade):.2%}' for grade in (self.minimum_grade, self.partial_grade, self.maximum_grade)),
+            # FIXME need a version that only shows display_str (for grade emails)
         ])
 
     @property
@@ -339,6 +431,12 @@ class AssignmentGrade(NamedNode):
         # type: () -> bool
         """Return whether this assignment is extra credit."""
         return self.assignment.extra_credit
+
+    @property
+    def grade_scale(self):
+        # type: () -> GradeScale
+        """Return the grade scale of the assignment."""
+        return self.assignment.grade_scale
 
     @property
     def percent_weight(self):
@@ -624,6 +722,10 @@ def test():
 def main():
     # type: () -> None
     """Initialize a GradeBook csv file."""
+    import sys
+    gradebook = GradeBook(Path(sys.argv[1]))
+    for student in gradebook.students:
+        gradebook.grades[student].pretty_print()
     raise NotImplementedError() # FIXME
 
 
