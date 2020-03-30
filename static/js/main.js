@@ -3,13 +3,13 @@ var FAILED = {};
 
 function focus_cell(input) {
     input = $(input);
-    input.parent().parent().css("border", "1px double #2185D0");
+    input.parent().css("border", "1px double #2185D0");
     input.css("box-shadow", "inset 0 -100px 0 rgba(33,133,208,.15)");
 }
 
 function blur_cell(input) {
     input = $(input);
-    input.parent().parent().css("border", "1px solid #ECECEC");
+    input.parent().css("border", "1px solid #ECECEC");
     input.css("box-shadow", "");
     update_score(input);
 }
@@ -29,7 +29,7 @@ function update_score(input) {
         SAVING[input_id] = 0;
     }
     SAVING[input_id] += 1;
-    input.parent().parent().css("background-color", "#FCE8AF");
+    input.parent().css("background-color", "#FCE8AF");
     $.post("/update_score", JSON.stringify(data))
         .done(function (response) {
             response = JSON.parse(response);
@@ -40,12 +40,12 @@ function update_score(input) {
             if (SAVING[input_id] === 0) {
                 delete SAVING[input_id];
                 delete FAILED[input_id];
-                input.parent().parent().css("background-color", "transparent");
+                input.parent().css("background-color", "transparent");
             }
         })
         .fail(function () {
             FAILED[input_id] = true;
-            input.parent().parent().css("background-color", "#F5C7C3");
+            input.parent().css("background-color", "#F5C7C3");
         });
 }
 
