@@ -115,7 +115,7 @@ class NamedNode:
             index = self.index_of(names[1])
             return self._children[index]._get(names[1:]) # pylint: disable = protected-access
 
-    def propagate(self):
+    def _propagate(self):
         # type: () -> None
         """Propagate information to ancestors."""
         pass
@@ -127,7 +127,7 @@ class NamedNode:
         self._children.append(node)
         node._parent = self
         node._depth = self._depth + 1
-        node.propagate()
+        node._propagate()
 
     def add_descendant(self, qualified_name, node):
         # type: (str, NamedNode) -> None
@@ -389,7 +389,7 @@ class AssignmentGrade(NamedNode):
         else:
             return f'{float(self.minimum_grade):.2%}'
 
-    def propagate(self):
+    def _propagate(self):
         # type: () -> None
         """Propagate information to ancestors."""
         if self.is_leaf:
@@ -398,7 +398,7 @@ class AssignmentGrade(NamedNode):
         else:
             self._has_grade = any(child.has_grade for child in self.children)
         if self.parent is not None:
-            self.parent.propagate()
+            self.parent._propagate()
 
     @property
     def minimum_grade(self):
@@ -453,7 +453,7 @@ class AssignmentGrade(NamedNode):
         # type: (str) -> None
         """Set a new grade."""
         self._grade_str = grade_str
-        self.propagate()
+        self._propagate()
 
 
 class Student:
