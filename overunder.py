@@ -358,37 +358,6 @@ class AssignmentGrade(NamedNode):
         """Check if there is a grade for this assignment."""
         return self._has_grade
 
-    @property
-    def projection_str(self):
-        # type: () -> str
-        """Get a multi-line human-readable grade projection."""
-        minimum_grade = self.minimum_grade
-        partial_grade = self.partial_grade
-        maximum_grade = self.maximum_grade
-        return '\n'.join([
-            f'Minimum: {float(minimum_grade):.2%} ({self.letter_grade(minimum_grade)})',
-            f'Partial: {float(partial_grade):.2%} ({self.letter_grade(partial_grade)})',
-            f'Maximum: {float(maximum_grade):.2%} ({self.letter_grade(maximum_grade)})',
-        ])
-
-    @property
-    def display_str(self):
-        # type: () -> str
-        """Get a human-readable grade."""
-        if self.is_leaf:
-            return self._grade_str
-        else:
-            return f'{float(self._weighted_grade()):.2%}'
-
-    @property
-    def export_str(self):
-        # type: () -> str
-        """Return this grade as a string for export."""
-        if self.is_leaf:
-            return self._grade_str
-        else:
-            return f'{float(self.minimum_grade):.2%}'
-
     def _propagate(self):
         # type: () -> None
         """Propagate information to ancestors."""
@@ -399,24 +368,6 @@ class AssignmentGrade(NamedNode):
             self._has_grade = any(child.has_grade for child in self.children)
         if self.parent is not None:
             self.parent._propagate()
-
-    @property
-    def minimum_grade(self):
-        # type: () -> Fraction
-        """Get the grade if all ungraded assignments get 0%."""
-        return self._weighted_grade(default_grade=0)
-
-    @property
-    def partial_grade(self):
-        # type: () -> Fraction
-        """Get the grade ignoring all ungraded assignments."""
-        return self._weighted_grade()
-
-    @property
-    def maximum_grade(self):
-        # type: () -> Fraction
-        """Get the grade if all ungraded assignments get 100%."""
-        return self._weighted_grade(default_grade=1)
 
     def _weighted_grade(self, default_grade=None):
         # type: (Optional[Number]) -> Fraction
@@ -440,6 +391,55 @@ class AssignmentGrade(NamedNode):
             return Fraction(0)
         else:
             return default_grade
+
+    @property
+    def minimum_grade(self):
+        # type: () -> Fraction
+        """Get the grade if all ungraded assignments get 0%."""
+        return self._weighted_grade(default_grade=0)
+
+    @property
+    def partial_grade(self):
+        # type: () -> Fraction
+        """Get the grade ignoring all ungraded assignments."""
+        return self._weighted_grade()
+
+    @property
+    def maximum_grade(self):
+        # type: () -> Fraction
+        """Get the grade if all ungraded assignments get 100%."""
+        return self._weighted_grade(default_grade=1)
+
+    @property
+    def display_str(self):
+        # type: () -> str
+        """Get a human-readable grade."""
+        if self.is_leaf:
+            return self._grade_str
+        else:
+            return f'{float(self._weighted_grade()):.2%}'
+
+    @property
+    def export_str(self):
+        # type: () -> str
+        """Return this grade as a string for export."""
+        if self.is_leaf:
+            return self._grade_str
+        else:
+            return f'{float(self.minimum_grade):.2%}'
+
+    @property
+    def projection_str(self):
+        # type: () -> str
+        """Get a multi-line human-readable grade projection."""
+        minimum_grade = self.minimum_grade
+        partial_grade = self.partial_grade
+        maximum_grade = self.maximum_grade
+        return '\n'.join([
+            f'Minimum: {float(minimum_grade):.2%} ({self.letter_grade(minimum_grade)})',
+            f'Partial: {float(partial_grade):.2%} ({self.letter_grade(partial_grade)})',
+            f'Maximum: {float(maximum_grade):.2%} ({self.letter_grade(maximum_grade)})',
+        ])
 
     def set_grade(self, grade_str):
         # type: (str) -> None
