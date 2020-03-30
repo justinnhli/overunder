@@ -290,11 +290,13 @@ class AssignmentGrade(NamedNode):
         """Initialize this AssignmentGrade."""
         super().__init__(assignment.name)
         self.assignment = assignment
-        # variables
-        self._has_grade = False
         # leaf variables
         self._grade_str = grade_str
+        # cache
+        self._has_grade = False
         self._percent_grade = None # type: Optional[Fraction]
+        self._weight_grade_cache = {} # type: Dict[Optional[Fraction], Fraction]
+        # initialize
         self.set_grade(grade_str)
 
     def _parse_grade_str(self, grade_str):
@@ -358,6 +360,12 @@ class AssignmentGrade(NamedNode):
         """Check if there is a grade for this assignment."""
         return self._has_grade
 
+    def _clear_cache(self):
+        # type: () -> None
+        self._has_grade = False
+        self._percent_grade = None
+        self._weight_grade_cache = {}
+
     def _propagate(self):
         # type: () -> None
         """Propagate information to ancestors."""
@@ -371,6 +379,9 @@ class AssignmentGrade(NamedNode):
 
     def _weighted_grade(self, default_grade=None):
         # type: (Optional[Number]) -> Fraction
+        if default_grade in self._weight_grade_cache:
+            return self._weight_grade_cache[default_grade]
+        result = None
         if not self.is_leaf:
             total_grade = Fraction(0)
             total_weight = Fraction(0)
@@ -381,16 +392,18 @@ class AssignmentGrade(NamedNode):
                 if not child.extra_credit:
                     total_weight += child.percent_weight
             if total_weight == 0:
-                return Fraction(0)
+                result = Fraction(0)
             else:
-                return total_grade / total_weight
+                result = total_grade / total_weight
         elif self.has_grade:
-            return self._percent_grade
+            result = self._percent_grade
         elif default_grade is None:
             # only occurs if we get the weighted grade of an unset grade directly
-            return Fraction(0)
+            result = Fraction(0)
         else:
-            return default_grade
+            result = default_grade
+        self._weight_grade_cache[default_grade] = result
+        return result
 
     @property
     def minimum_grade(self):
@@ -445,6 +458,7 @@ class AssignmentGrade(NamedNode):
         # type: (str) -> None
         """Set a new grade."""
         self._grade_str = grade_str
+        self._clear_cache()
         self._propagate()
 
     @staticmethod
