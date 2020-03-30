@@ -56,20 +56,21 @@
                     (<abbr title="{{ assignment.percent_weight_str }}">{{ assignment.weight_display }}</abbr>)
                 </div></th>
                 {% for student in students %}
-                {% if gradebook.get_grade(student.alias, assignment.qualified_name).is_leaf %}
+                {% set grade = gradebook.get_grade(student.alias, assignment.qualified_name) %}
+                {% if grade.is_leaf %}
                 <td class="grade"><div>
                     <input
                         type="text"
                         id="{{ student.alias }}__{{ assignment.qualified_name }}"
-                        value="{{ gradebook.get_grade(student.alias, assignment.qualified_name).display_str }}"
+                        value="{{ grade.display_str }}"
                         onfocus="focus_cell(this);"
                         onblur="blur_cell(this);"
                         onkeyup="update_score(this);">
                 </div></td>
                 {% else %}
                 <td class="grade readonly" id="{{ student.alias }}__{{ assignment.qualified_name }}">
-                    <abbr title="{{ gradebook.get_grade(student.alias, assignment.qualified_name).projection_str }}">
-                        {{ gradebook.get_grade(student.alias, assignment.qualified_name).display_str }}
+                    <abbr title="{{ grade.projection_str }}">
+                        {{ grade.display_str }}
                     </abbr>
                 </td>
                 {% endif %}
