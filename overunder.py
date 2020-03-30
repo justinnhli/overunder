@@ -441,19 +441,20 @@ class AssignmentGrade(NamedNode):
         else:
             return default_grade
 
-    def letter_grade(self, fraction):
-        # type: (Fraction) -> str
-        """Get the letter grade associated with the percentage."""
-        for letter, boundary in self.LETTER_FRACTIONS.items():
-            if fraction < boundary:
-                return letter
-        return 'A'
-
     def set_grade(self, grade_str):
         # type: (str) -> None
         """Set a new grade."""
         self._grade_str = grade_str
         self._propagate()
+
+    @staticmethod
+    def letter_grade(fraction):
+        # type: (Fraction) -> str
+        """Get the letter grade associated with the percentage."""
+        for letter, boundary in AssignmentGrade.LETTER_FRACTIONS.items():
+            if fraction < boundary:
+                return letter
+        return 'A'
 
 
 class Student:
