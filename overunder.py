@@ -205,6 +205,57 @@ class NamedNode:
             yield from child.pretty_print_lines()
 
 
+PERCENT_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?%')
+FRACTION_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?/([0-9]*)(\.[0-9]+)?')
+SCORE_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?')
+LETTER_REGEX = re.compile(r'[A-F][+-]?(/[A-F][+-]?)?')
+
+
+def parse_fraction(string, full_points=None, grade_scale=None):
+    # type: (st) -> Tuple[Optional[Fraction], str]
+    if string.lower() == 'none':
+        return None, 'none'
+    string = string.lstrip('+')
+    negative = string.startswith('-')
+    if negative:
+        string = string[1:]
+    if PERCENT_REGEX.fullmatch(string):
+        fraction = Fraction(string[:-1]) / Fraction(100)
+        fraction_type = 'percent'
+    elif FRACTION_REGEX.fullmatch(string):
+        numerator, denominator = string.split('/')
+        if numerator == '':
+            numerator = '0'
+        if denominator == '':
+            denominator = '1'
+        fraction = Fraction(numerator) / Fraction(denominator)
+        fraction_type = 'fraction'
+    elif SCORE_REGEX.fullmatch(string):
+        if full_points is None:
+            fraction = Fraction(string)
+        else:
+            fraction = Fraction(string) / full_points
+        fraction_type = 'points'
+    elif LETTER_REGEX.fullmatch(string):
+        if grade_scale is None:
+            raise ValueError(f'no grade scale given for fraction: {string}')
+        if '/' in string:
+            lower, upper = string.split('/')
+            fraction = (
+                grade_scale[lower]
+                + grade_scale[upper]
+            ) / 2
+        else:
+            fraction = grade_scale[string]
+        fraction_type = 'letter'
+    else:
+        raise ValueError(f'invalid fraction: {string}')
+    if negative:
+        return 1 - fraction, fraction_type
+    else:
+        return fraction, fraction_type
+
+
 class Assignment(NamedNode):
     """An assignment with a specific weight."""
 
@@ -219,15 +270,10 @@ class Assignment(NamedNode):
     def _parse_weight_str(self, weight_str):
         # type: (str) -> Tuple[Fraction, str]
         # pylint: disable = no-self-use
-        if weight_str.endswith('%'):
-            return Fraction(weight_str[:-1]) / Fraction(100), 'percent'
-        elif '/' in weight_str:
-            numerator, denominator = weight_str.split('/')
-            return Fraction(numerator) / Fraction(denominator), 'fraction'
-        elif re.fullmatch('[0-9.]*', weight_str):
-            return Fraction(weight_str), 'points'
-        else:
+        fraction, fraction_type = parse_fraction(weight_str)
+        if fraction is None:
             raise ValueError(f'invalid weight string: {weight_str}')
+        return fraction, fraction_type
 
     def __str__(self):
         # type: () -> str
@@ -317,10 +363,6 @@ class ColorScale:
 class AssignmentGrade(NamedNode):
     """A grade for a specific assignment."""
 
-    PERCENT_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?%')
-    FRACTION_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?/([0-9]*)(\.[0-9]+)?')
-    SCORE_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?')
-    LETTER_REGEX = re.compile(r'[A-F][+-]?(/[A-F][+-]?)?')
     LETTER_FRACTIONS = {
         'F': Fraction(180, 300),
         'D': Fraction(195, 300),
@@ -357,38 +399,11 @@ class AssignmentGrade(NamedNode):
     def _parse_grade_str(self, grade_str):
         # type: (str) -> Optional[Fraction]
         # pylint: disable = no-self-use
-        if grade_str.lower() == 'none':
-            return None
-        grade_str = grade_str.lstrip('+')
-        negative = grade_str.startswith('-')
-        if negative:
-            grade_str = grade_str[1:]
-        if self.PERCENT_REGEX.fullmatch(grade_str):
-            grade = Fraction(grade_str[:-1]) / Fraction(100)
-        elif self.FRACTION_REGEX.fullmatch(grade_str):
-            numerator, denominator = grade_str.split('/')
-            if numerator == '':
-                numerator = '0'
-            if denominator == '':
-                denominator = '1'
-            grade = Fraction(numerator) / Fraction(denominator)
-        elif self.SCORE_REGEX.fullmatch(grade_str):
-            grade = Fraction(grade_str) / self.assignment._weight
-        elif self.LETTER_REGEX.fullmatch(grade_str):
-            if '/' in grade_str:
-                lower, upper = grade_str.split('/')
-                grade = (
-                    self.LETTER_FRACTIONS[lower]
-                    + self.LETTER_FRACTIONS[upper]
-                ) / 2
-            else:
-                grade = self.LETTER_FRACTIONS[grade_str]
-        else:
-            raise ValueError(f'invalid grade string: {grade_str}')
-        if negative:
-            return 1 - grade
-        else:
-            return grade
+        return parse_fraction(
+            grade_str,
+            full_points=self.assignment._weight,
+            grade_scale=self.LETTER_FRACTIONS,
+        )[0]
 
     def __str__(self):
         # type: () -> str
