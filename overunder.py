@@ -1,6 +1,7 @@
 """A gradebook library."""
 
 import re
+from colorsys import rgb_to_hsv, hsv_to_rgb
 from fractions import Fraction
 from pathlib import Path
 
@@ -264,6 +265,55 @@ class Assignment(NamedNode):
         return f'{float(self.percent_weight):.2%}'
 
 
+class ColorScale:
+
+    def __init__(self, anchors, resolution=2):
+        # type: (Iterable[Fraction, str], int) -> None
+        """Initialize the ColorScale."""
+        hsv_anchors = [(int(100 * round(bound, resolution)), self.html_to_hsv(html)) for bound, html in anchors]
+        self.resolution = resolution
+        self.lowest = Fraction(hsv_anchors[0][0], 100)
+        self.highest = Fraction(hsv_anchors[-1][0], 100)
+        self.percent_map = {} # type: Dict[Fraction, str]
+        for (lower_bound, lower_hsv), (upper_bound, upper_hsv) in zip(hsv_anchors[:-1], hsv_anchors[1:]):
+            for percent in range(lower_bound, upper_bound):
+                fraction = Fraction(percent, 100)
+                weight = (percent - lower_bound) / (upper_bound - lower_bound)
+                html = self.hsv_to_html(*(
+                    (1 - weight) * lower_channel + weight * upper_channel
+                    for lower_channel, upper_channel in zip(lower_hsv, upper_hsv)
+                ))
+                self.percent_map[fraction] = html
+        self.percent_map[self.highest] = self.hsv_to_html(*hsv_anchors[-1][1])
+
+    def __getitem__(self, fraction):
+        # type: (Fraction) -> str
+        if fraction < self.lowest:
+            return self.percent_map[self.lowest]
+        elif self.highest < fraction:
+            return self.percent_map[self.highest]
+        else:
+            return self.percent_map[round(fraction, self.resolution)]
+
+    @staticmethod
+    def html_to_hsv(color):
+        # type: (str) -> Tuple[float, float, float]
+        """Convert a HTML color string to a HSV tuple."""
+        return rgb_to_hsv(*(
+            int(color[i:i + 2], base=16) / 255
+            for i in range(1, 6, 2)
+        ))
+
+    @staticmethod
+    def hsv_to_html(h, s, v): # pylint: disable = invalid-name
+        # type: (float, float, float) -> str
+        """Convert a HSV tuple to a HTML color string."""
+        return ''.join((
+            '#',
+            *(f'{round(channel * 255):02x}' for channel in hsv_to_rgb(h, s, v)),
+        ))
+
+
 class AssignmentGrade(NamedNode):
     """A grade for a specific assignment."""
 
@@ -284,6 +334,11 @@ class AssignmentGrade(NamedNode):
         'A-': Fraction(285, 300),
         'A': Fraction(300, 300),
     }
+    COLOR_SCALE = ColorScale([
+        (Fraction(6, 10), '#EF2929'),
+        (Fraction(8, 10), '#FCE94F'),
+        (Fraction(10, 10),'#8AE234'),
+    ])
 
     def __init__(self, assignment, grade_str):
         # type: (Assignment, str) -> None
@@ -453,6 +508,15 @@ class AssignmentGrade(NamedNode):
             f'Partial: {float(partial_grade):.2%} ({self.letter_grade(partial_grade)})',
             f'Maximum: {float(maximum_grade):.2%} ({self.letter_grade(maximum_grade)})',
         ])
+
+    @property
+    def as_color(self):
+        # type: () -> str
+        """Map the partial grade onto a color scale."""
+        if not self.has_grade:
+            return '#CCCCCC'
+        else:
+            return self.COLOR_SCALE[self.partial_grade]
 
     def set_grade(self, grade_str):
         # type: (str) -> None
