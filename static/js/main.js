@@ -34,7 +34,14 @@ function update_score(input) {
         .done(function (response) {
             response = JSON.parse(response);
             for (var i = 0; i < response.length; i++) {
-                $("#" + response[i][0]).html(response[i][1]);
+                var ancestor_id = response[i][0];
+                var ancestor = $("#" + ancestor_id);
+                if (ancestor_id === input_id) {
+                    ancestor.parent().css("background-color", response[i][2]);
+                } else {
+                    ancestor.html(response[i][1]);
+                    ancestor.css("background-color", response[i][2]);
+                }
             }
             SAVING[input_id] -= 1;
             if (SAVING[input_id] === 0) {

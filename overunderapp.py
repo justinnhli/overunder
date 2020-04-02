@@ -168,12 +168,13 @@ def update_score():
         return abort(500)
     grade.set_grade(data['value'])
     result = []
-    while grade.parent is not None:
-        grade = grade.parent
+    while grade is not None:
         result.append([
             f'{data["alias"]}__{grade.qualified_name}',
             grade.display_str,
+            grade.as_color,
         ])
+        grade = grade.parent
     return json.dumps(result)
 
 
