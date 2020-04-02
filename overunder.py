@@ -502,7 +502,7 @@ class AssignmentGrade(NamedNode):
         if self.is_leaf:
             return self._grade_str
         else:
-            return f'{float(self._weighted_grade()):.2%}'
+            return f'{float(self.partial_grade):.2%}'
 
     @property
     def export_str(self):
