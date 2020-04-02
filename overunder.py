@@ -439,6 +439,7 @@ class AssignmentGrade(NamedNode):
     def _propagate(self):
         # type: () -> None
         """Propagate information to ancestors."""
+        self._clear_cache()
         if self.is_leaf:
             self._percent_grade = self._parse_grade_str(self._grade_str)
             self._has_grade = self._percent_grade is not None
@@ -537,7 +538,6 @@ class AssignmentGrade(NamedNode):
         # type: (str) -> None
         """Set a new grade."""
         self._grade_str = grade_str
-        self._clear_cache()
         self._propagate()
 
     @staticmethod
