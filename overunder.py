@@ -1,6 +1,7 @@
 """A gradebook library."""
 
 import re
+from colorsys import rgb_to_hsv, hsv_to_rgb
 from fractions import Fraction
 from pathlib import Path
 
@@ -204,6 +205,57 @@ class NamedNode:
             yield from child.pretty_print_lines()
 
 
+PERCENT_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?%')
+FRACTION_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?/([0-9]*)(\.[0-9]+)?')
+SCORE_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?')
+LETTER_REGEX = re.compile(r'[A-F][+-]?(/[A-F][+-]?)?')
+
+
+def parse_fraction(string, full_points=None, grade_scale=None):
+    # type: (st) -> Tuple[Optional[Fraction], str]
+    if string.lower() == 'none':
+        return None, 'none'
+    string = string.lstrip('+')
+    negative = string.startswith('-')
+    if negative:
+        string = string[1:]
+    if PERCENT_REGEX.fullmatch(string):
+        fraction = Fraction(string[:-1]) / Fraction(100)
+        fraction_type = 'percent'
+    elif FRACTION_REGEX.fullmatch(string):
+        numerator, denominator = string.split('/')
+        if numerator == '':
+            numerator = '0'
+        if denominator == '':
+            denominator = '1'
+        fraction = Fraction(numerator) / Fraction(denominator)
+        fraction_type = 'fraction'
+    elif SCORE_REGEX.fullmatch(string):
+        if full_points is None:
+            fraction = Fraction(string)
+        else:
+            fraction = Fraction(string) / full_points
+        fraction_type = 'points'
+    elif LETTER_REGEX.fullmatch(string):
+        if grade_scale is None:
+            raise ValueError(f'no grade scale given for fraction: {string}')
+        if '/' in string:
+            lower, upper = string.split('/')
+            fraction = (
+                grade_scale[lower]
+                + grade_scale[upper]
+            ) / 2
+        else:
+            fraction = grade_scale[string]
+        fraction_type = 'letter'
+    else:
+        raise ValueError(f'invalid fraction: {string}')
+    if negative:
+        return 1 - fraction, fraction_type
+    else:
+        return fraction, fraction_type
+
+
 class Assignment(NamedNode):
     """An assignment with a specific weight."""
 
@@ -218,15 +270,10 @@ class Assignment(NamedNode):
     def _parse_weight_str(self, weight_str):
         # type: (str) -> Tuple[Fraction, str]
         # pylint: disable = no-self-use
-        if weight_str.endswith('%'):
-            return Fraction(weight_str[:-1]) / Fraction(100), 'percent'
-        elif '/' in weight_str:
-            numerator, denominator = weight_str.split('/')
-            return Fraction(numerator) / Fraction(denominator), 'fraction'
-        elif re.fullmatch('[0-9.]*', weight_str):
-            return Fraction(weight_str), 'points'
-        else:
+        fraction, fraction_type = parse_fraction(weight_str)
+        if fraction is None:
             raise ValueError(f'invalid weight string: {weight_str}')
+        return fraction, fraction_type
 
     def __str__(self):
         # type: () -> str
@@ -264,13 +311,58 @@ class Assignment(NamedNode):
         return f'{float(self.percent_weight):.2%}'
 
 
+class ColorScale:
+
+    def __init__(self, anchors, resolution=2):
+        # type: (Iterable[Fraction, str], int) -> None
+        """Initialize the ColorScale."""
+        hsv_anchors = [(int(100 * round(bound, resolution)), self.html_to_hsv(html)) for bound, html in anchors]
+        self.resolution = resolution
+        self.lowest = Fraction(hsv_anchors[0][0], 100)
+        self.highest = Fraction(hsv_anchors[-1][0], 100)
+        self.percent_map = {} # type: Dict[Fraction, str]
+        for (lower_bound, lower_hsv), (upper_bound, upper_hsv) in zip(hsv_anchors[:-1], hsv_anchors[1:]):
+            for percent in range(lower_bound, upper_bound):
+                fraction = Fraction(percent, 100)
+                weight = (percent - lower_bound) / (upper_bound - lower_bound)
+                html = self.hsv_to_html(*(
+                    (1 - weight) * lower_channel + weight * upper_channel
+                    for lower_channel, upper_channel in zip(lower_hsv, upper_hsv)
+                ))
+                self.percent_map[fraction] = html
+        self.percent_map[self.highest] = self.hsv_to_html(*hsv_anchors[-1][1])
+
+    def __getitem__(self, fraction):
+        # type: (Fraction) -> str
+        if fraction < self.lowest:
+            return self.percent_map[self.lowest]
+        elif self.highest < fraction:
+            return self.percent_map[self.highest]
+        else:
+            return self.percent_map[round(fraction, self.resolution)]
+
+    @staticmethod
+    def html_to_hsv(color):
+        # type: (str) -> Tuple[float, float, float]
+        """Convert a HTML color string to a HSV tuple."""
+        return rgb_to_hsv(*(
+            int(color[i:i + 2], base=16) / 255
+            for i in range(1, 6, 2)
+        ))
+
+    @staticmethod
+    def hsv_to_html(h, s, v): # pylint: disable = invalid-name
+        # type: (float, float, float) -> str
+        """Convert a HSV tuple to a HTML color string."""
+        return ''.join((
+            '#',
+            *(f'{round(channel * 255):02x}' for channel in hsv_to_rgb(h, s, v)),
+        ))
+
+
 class AssignmentGrade(NamedNode):
     """A grade for a specific assignment."""
 
-    PERCENT_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?%')
-    FRACTION_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?/([0-9]*)(\.[0-9]+)?')
-    SCORE_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?')
-    LETTER_REGEX = re.compile(r'[A-F][+-]?(/[A-F][+-]?)?')
     LETTER_FRACTIONS = {
         'F': Fraction(180, 300),
         'D': Fraction(195, 300),
@@ -284,6 +376,11 @@ class AssignmentGrade(NamedNode):
         'A-': Fraction(285, 300),
         'A': Fraction(300, 300),
     }
+    COLOR_SCALE = ColorScale([
+        (Fraction(6, 10), '#EF2929'),
+        (Fraction(8, 10), '#FCE94F'),
+        (Fraction(10, 10),'#8AE234'),
+    ])
 
     def __init__(self, assignment, grade_str):
         # type: (Assignment, str) -> None
@@ -302,38 +399,11 @@ class AssignmentGrade(NamedNode):
     def _parse_grade_str(self, grade_str):
         # type: (str) -> Optional[Fraction]
         # pylint: disable = no-self-use
-        if grade_str.lower() == 'none':
-            return None
-        grade_str = grade_str.lstrip('+')
-        negative = grade_str.startswith('-')
-        if negative:
-            grade_str = grade_str[1:]
-        if self.PERCENT_REGEX.fullmatch(grade_str):
-            grade = Fraction(grade_str[:-1]) / Fraction(100)
-        elif self.FRACTION_REGEX.fullmatch(grade_str):
-            numerator, denominator = grade_str.split('/')
-            if numerator == '':
-                numerator = '0'
-            if denominator == '':
-                denominator = '1'
-            grade = Fraction(numerator) / Fraction(denominator)
-        elif self.SCORE_REGEX.fullmatch(grade_str):
-            grade = Fraction(grade_str) / self.assignment._weight
-        elif self.LETTER_REGEX.fullmatch(grade_str):
-            if '/' in grade_str:
-                lower, upper = grade_str.split('/')
-                grade = (
-                    self.LETTER_FRACTIONS[lower]
-                    + self.LETTER_FRACTIONS[upper]
-                ) / 2
-            else:
-                grade = self.LETTER_FRACTIONS[grade_str]
-        else:
-            raise ValueError(f'invalid grade string: {grade_str}')
-        if negative:
-            return 1 - grade
-        else:
-            return grade
+        return parse_fraction(
+            grade_str,
+            full_points=self.assignment._weight,
+            grade_scale=self.LETTER_FRACTIONS,
+        )[0]
 
     def __str__(self):
         # type: () -> str
@@ -369,6 +439,8 @@ class AssignmentGrade(NamedNode):
     def _propagate(self):
         # type: () -> None
         """Propagate information to ancestors."""
+        self._clear_cache()
+        has_grade = self._has_grade
         if self.is_leaf:
             self._percent_grade = self._parse_grade_str(self._grade_str)
             self._has_grade = self._percent_grade is not None
@@ -430,7 +502,7 @@ class AssignmentGrade(NamedNode):
         if self.is_leaf:
             return self._grade_str
         else:
-            return f'{float(self._weighted_grade()):.2%}'
+            return f'{float(self.partial_grade):.2%}'
 
     @property
     def export_str(self):
@@ -454,11 +526,22 @@ class AssignmentGrade(NamedNode):
             f'Maximum: {float(maximum_grade):.2%} ({self.letter_grade(maximum_grade)})',
         ])
 
+    @property
+    def as_color(self):
+        # type: () -> str
+        """Map the partial grade onto a color scale."""
+        if not self.has_grade:
+            return '#CCCCCC'
+        else:
+            return self.COLOR_SCALE[self.partial_grade]
+
     def set_grade(self, grade_str):
         # type: (str) -> None
         """Set a new grade."""
+        grade_str = grade_str.strip()
+        if self._grade_str == grade_str:
+            return
         self._grade_str = grade_str
-        self._clear_cache()
         self._propagate()
 
     @staticmethod

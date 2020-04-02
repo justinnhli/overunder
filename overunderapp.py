@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from overunder import GradeBook
+from overunder import GradeBook, parse_fraction
 
 try:
     # pylint: disable = import-error
@@ -163,16 +163,18 @@ def update_score():
     if grade.display_str == data['value']:
         return json.dumps([])
     try:
-        grade.set_grade(data['value'])
+        parse_fraction(data['value'])
     except ValueError:
         return abort(500)
+    grade.set_grade(data['value'])
     result = []
-    while grade.parent is not None:
-        grade = grade.parent
+    while grade is not None:
         result.append([
             f'{data["alias"]}__{grade.qualified_name}',
             grade.display_str,
+            grade.as_color,
         ])
+        grade = grade.parent
     return json.dumps(result)
 
 

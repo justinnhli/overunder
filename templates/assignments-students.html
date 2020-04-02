@@ -68,7 +68,7 @@
                         onkeyup="update_score(this);">
                 </td>
                 {% else %}
-                <td class="grade readonly" id="{{ student.alias }}__{{ assignment.qualified_name }}">
+                <td class="grade readonly" id="{{ student.alias }}__{{ assignment.qualified_name }}" style="background-color:{{ grade.as_color }};">
                     <abbr title="{{ grade.projection_str }}">
                         {{ grade.display_str }}
                     </abbr>
