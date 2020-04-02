@@ -4,7 +4,7 @@
 import atexit
 import json
 from argparse import ArgumentParser
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 from overunder import GradeBook, parse_fraction
@@ -109,6 +109,8 @@ def view_assignments_students(assignment_filter, student_filter):
 
 @APP.route('/save')
 def save():
+    # type: () -> Response
+    """Save the GradeBook to file."""
     APP.config['gradebook'].write_csv()
     return redirect(request.referrer)
 
@@ -203,7 +205,8 @@ def get_js(filename):
 
 
 def save_backup():
-    # type: (bool) -> None
+    # type: () -> None
+    """Save the GradeBook to a timestamped backup."""
     gradebook = APP.config['gradebook']
     csv_name = gradebook.csv_path.name
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')

@@ -212,7 +212,8 @@ LETTER_REGEX = re.compile(r'[A-F][+-]?(/[A-F][+-]?)?')
 
 
 def parse_fraction(string, full_points=None, grade_scale=None):
-    # type: (st) -> Tuple[Optional[Fraction], str]
+    # type: (str, Optional[Fraction], Optional[Mapping[str, Fraction]]) -> Tuple[Optional[Fraction], str]
+    """Parse a string into a Fraction."""
     if string.lower() == 'none':
         return None, 'none'
     string = string.lstrip('+')
