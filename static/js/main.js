@@ -29,7 +29,7 @@ function update_score(input) {
         SAVING[input_id] = 0;
     }
     SAVING[input_id] += 1;
-    input.parent().css("background-color", "#FCE8AF");
+    input.parent().addClass("parsing");
     $.post("/update_score", JSON.stringify(data))
         .done(function (response) {
             response = JSON.parse(response);
@@ -40,12 +40,11 @@ function update_score(input) {
             if (SAVING[input_id] === 0) {
                 delete SAVING[input_id];
                 delete FAILED[input_id];
-                input.parent().css("background-color", "transparent");
+                input.parent().removeClass("parsing");
             }
         })
         .fail(function () {
             FAILED[input_id] = true;
-            input.parent().css("background-color", "#F5C7C3");
         });
 }
 
