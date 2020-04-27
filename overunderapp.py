@@ -225,9 +225,11 @@ def main():
     """Start the app."""
     arg_parser = ArgumentParser()
     arg_parser.add_argument('grades_file', type=Path, help='The grades CSV file.')
+    arg_parser.add_argument('--backup', default=False, help='Backup the grades file before launching')
     args = arg_parser.parse_args()
     configure_app(args.grades_file)
-    save_backup()
+    if args.backup:
+        save_backup()
     atexit.register(lambda: APP.config['gradebook'].write_csv())
     APP.run(debug=True)
 
