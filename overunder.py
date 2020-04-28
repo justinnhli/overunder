@@ -3,7 +3,9 @@
 import re
 from colorsys import rgb_to_hsv, hsv_to_rgb
 from fractions import Fraction
+from numbers import Real
 from pathlib import Path
+from typing import Optional, Generator, Iterable, Mapping, Tuple, List, Dict
 
 
 class NamedNode:
@@ -198,7 +200,7 @@ class NamedNode:
             print(line)
 
     def pretty_print_lines(self, indent='__'):
-        # type: (str) -> Generator[NamedNode, None, None]
+        # type: (str) -> Generator[str, None, None]
         """Print the NamedNode and its descendants, with indentation."""
         yield self.to_heading(indent=indent)
         for child in self.children:
@@ -315,7 +317,7 @@ class Assignment(NamedNode):
 class ColorScale:
 
     def __init__(self, anchors, resolution=2):
-        # type: (Iterable[Fraction, str], int) -> None
+        # type: (Iterable[Tuple[Fraction, str]], int) -> None
         """Initialize the ColorScale."""
         hsv_anchors = [(int(100 * round(bound, resolution)), self.html_to_hsv(html)) for bound, html in anchors]
         self.resolution = resolution
@@ -393,7 +395,7 @@ class AssignmentGrade(NamedNode):
         # cache
         self._has_grade = False
         self._percent_grade = None # type: Optional[Fraction]
-        self._weight_grade_cache = {} # type: Dict[Optional[Fraction], Fraction]
+        self._weight_grade_cache = {} # type: Dict[Optional[Real], Fraction]
         # initialize
         self.set_grade(grade_str)
 
@@ -441,7 +443,6 @@ class AssignmentGrade(NamedNode):
         # type: () -> None
         """Propagate information to ancestors."""
         self._clear_cache()
-        has_grade = self._has_grade
         if self.is_leaf:
             self._percent_grade = self._parse_grade_str(self._grade_str)
             self._has_grade = self._percent_grade is not None
@@ -451,7 +452,7 @@ class AssignmentGrade(NamedNode):
             self.parent._propagate()
 
     def _weighted_grade(self, default_grade=None):
-        # type: (Optional[Number]) -> Fraction
+        # type: (Optional[Real]) -> Fraction
         if default_grade in self._weight_grade_cache:
             return self._weight_grade_cache[default_grade]
         result = None
