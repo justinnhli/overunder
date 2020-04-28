@@ -20,7 +20,7 @@
                     <a href="/assignments-students/all/all/">Unfilter</a>
                 </td>
                 {% for student in students %}
-                <th class="student"><div>
+                <th class="column-header student"><div>
                     <a href="/assignments-students/{{ assignment_filter }}/{{ student.alias }}/">{{ student.first_name }} {{ student.last_name }}</a><br>
                     <a href="mailto:{{ student.email }}">&#x2709;</a>
                 </div></th>
@@ -46,7 +46,7 @@
                     <span class="hidden">&#x2717;</span>
                     {% endif %}
                 </div></td>
-                <th class="assignment"><div>
+                <th class="row-header assignment"><div>
                     {% if assignment.is_leaf %}
                     <span class="expander-filler">{{ (assignment.depth - min_depth) * '&nbsp;' | safe }}&nbsp;</span>
                     {% else %}

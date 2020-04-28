@@ -20,7 +20,8 @@
                     <a href="/students-assignments/all/all/">Unfilter</a>
                 </td>
                 {% for assignment in assignments %}
-                <th>
+                <th class="column-header">
+                    {{ (assignment.depth - min_depth) * '<br>' | safe }}
                     <a href="/students-assignments/{{ student_filter }}/{{ assignment.qualified_name }}/">
                         {{ assignment.name }}
                     </a>
@@ -29,14 +30,31 @@
             </tr>
             {% for student in students %}
             <tr>
-                <th>
+                <th class="row-header"><div>
                     <a href="/students-assignments/{{ student.alias }}/{{ assignment_filter }}/">
                         {{ student.first_name }} {{ student.last_name }}
                     </a>
                     <a href="mailto:{{ student.email }}">&#x2709;</a>
-                </th>
+                </div></th>
                 {% for assignment in assignments %}
-                <td>{{ gradebook.get_grade(student.alias, assignment.qualified_name).display_str }}</td>
+                {% set grade = gradebook.get_grade(student.alias, assignment.qualified_name) %}
+                {% if grade.is_leaf %}
+                <td class="grade" style="background-color:{{ grade.as_color }};">
+                    <input
+                        type="text"
+                        id="{{ student.alias }}__{{ assignment.qualified_name }}"
+                        value="{{ grade.display_str }}"
+                        onfocus="focus_cell(this);"
+                        onblur="blur_cell(this);"
+                        onkeyup="update_score(this);">
+                </td>
+                {% else %}
+                <td class="grade readonly" id="{{ student.alias }}__{{ assignment.qualified_name }}" style="background-color:{{ grade.as_color }};">
+                    <abbr title="{{ grade.projection_str }}">
+                        {{ grade.display_str }}
+                    </abbr>
+                </td>
+                {% endif %}
                 {% endfor %}
             </tr>
             {% endfor %}

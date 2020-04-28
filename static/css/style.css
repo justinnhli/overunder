@@ -11,7 +11,8 @@ td.controls span.pointer {cursor:pointer;}
 td.controls span.hidden {color:transparent; cursor:default;}
 th.student {vertical-align:bottom;}
 th.student div {height:auto; max-height:4em; overflow:hidden;}
-th.assignment div {text-align:left; width:15em;}
+th.row-header div {text-align:left; width:15em;}
+th.column-header {vertical-align:top;}
 th.assignment span.expander {font-family:monospace; cursor:pointer;}
 th.assignment span.expander-filler {font-family:monospace;}
 td.grade, td.grade input {text-align:right; font-size:inherit; min-width:7em; max-width:7em; height:1.25em; border:0; padding:0;}

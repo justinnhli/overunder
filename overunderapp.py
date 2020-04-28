@@ -64,13 +64,14 @@ def view_students_assignments(student_filter, assignment_filter):
         students = list(gradebook.students.values())
     else:
         students = list(
-            student for student in gradebook.grades.values()
+            student for student in gradebook.students.values()
             if student.alias == student_filter
         )
     context = {
         'student_filter': student_filter,
         'assignment_filter': assignment_filter,
         'gradebook': gradebook,
+        'min_depth': assignments[0].depth,
         'assignments': assignments,
         'students': students,
     }
