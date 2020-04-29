@@ -170,6 +170,7 @@ def update_score():
     except ValueError:
         return abort(500)
     grade.set_grade(data['value'])
+    APP.config['changed'] = True
     result = []
     while grade is not None:
         result.append([
@@ -219,6 +220,27 @@ def configure_app(filepath):
     """Configure the app."""
     APP.config['gradebook'] = GradeBook(filepath)
     APP.config['root_directory'] = Path(__file__).parent.resolve()
+    # The changed flag is necessary because, if Flask is run in debug
+    # mode, two copies of the app will be created in separate threads.
+    # This allows Flask to restart itself if the source has changed (see
+    # https://stackoverflow.com/q/25504149). The problem is that only
+    # *one* of those copies is updated with new data, specifically the
+    # copy in the child thread. This means that when write_on_exit() is
+    # called in both threads, the parent and child could clobber each
+    # other. (In practice, the parent always writes second, thus wiping
+    # any changes; this is likely because the parent is waiting for the
+    # child to finish.) The official way of telling them apart is by
+    # calling werkzeug.serving.is_running_from_reloader(); unfortunately,
+    # since it's the child that has the changes, the correct value depends
+    # on whether we are in debug mode (True if so, False otherwise). It's
+    # therefore much cleaner to just check whether there were changes
+    # ourselves, and only write if the grades have changed.
+    APP.config['changed'] = False
+
+
+def write_on_exit():
+    if APP.config['changed']:
+        APP.config['gradebook'].write_csv()
 
 
 def main():
@@ -231,7 +253,7 @@ def main():
     configure_app(args.grades_file)
     if args.backup:
         save_backup()
-    atexit.register(lambda: APP.config['gradebook'].write_csv())
+    atexit.register(write_on_exit)
     APP.run(debug=True)
 
 
