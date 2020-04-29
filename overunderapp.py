@@ -254,7 +254,7 @@ def main():
     if args.backup:
         save_backup()
     atexit.register(write_on_exit)
-    APP.run(debug=True)
+    APP.run()
 
 
 if __name__ == '__main__':
