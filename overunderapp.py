@@ -145,7 +145,7 @@ def create_child():
     # type: () -> Response
     """Respond to a Flask route."""
     data = json.loads(request.get_data())
-    APP.config['gradebook'].add_assignment(data['qualified_name'], data['weight_str'])
+    APP.config['gradebook'].add_assignment(data['qualified_name'].strip(), data['weight_str'].strip())
     return redirect(request.referrer)
 
 
