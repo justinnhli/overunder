@@ -34,13 +34,13 @@ function update_score(input) {
         .done(function (response) {
             response = JSON.parse(response);
             for (var i = 0; i < response.length; i++) {
-                var ancestor_id = response[i][0];
+                var ancestor_id = response[i]['qname'];
                 var ancestor = $("#" + ancestor_id);
                 if (ancestor_id === input_id) {
-                    ancestor.parent().css("background-color", response[i][2]);
+                    ancestor.parent().css("background-color", response[i]['color']);
                 } else {
-                    ancestor.html(response[i][1]);
-                    ancestor.css("background-color", response[i][2]);
+                    ancestor.html('<abbr title="' + response[i]['projection'] + '">' + response[i]['display'] + '</abbr>');
+                    ancestor.css("background-color", response[i]['color']);
                 }
             }
             SAVING[input_id] -= 1;

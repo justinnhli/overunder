@@ -173,11 +173,12 @@ def update_score():
     APP.config['changed'] = True
     result = []
     while grade is not None:
-        result.append([
-            f'{data["alias"]}__{grade.qualified_name}',
-            grade.display_str,
-            grade.as_color,
-        ])
+        result.append({
+            'qname': f'{data["alias"]}__{grade.qualified_name}',
+            'display': grade.display_str,
+            'projection': grade.projection_str,
+            'color': grade.as_color,
+        })
         grade = grade.parent
     return json.dumps(result)
 
