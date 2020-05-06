@@ -308,10 +308,16 @@ class Assignment(NamedNode):
             return self._weight_str
 
     @property
-    def percent_weight_str(self):
+    def weight_info_str(self):
         # type: () -> str
-        """Get the percentage weight as a str."""
-        return f'{float(self.percent_weight):.2%}'
+        """Get addition information about the weight."""
+        info = []
+        if self._weight_type == 'percent':
+            info.append(f'Percentage weight: {float(self.percent_weight):.2%}')
+        if not self.is_leaf:
+            percent = sum(child.percent_weight for child in self.children)
+            info.append(f'Total child weight: {float(percent):.2%}')
+        return '\n'.join(info)
 
 
 class ColorScale:
