@@ -386,9 +386,9 @@ class AssignmentGrade(NamedNode):
         'A': Fraction(300, 300),
     }
     COLOR_SCALE = ColorScale([
-        (Fraction(6, 10), '#EF2929'),
-        (Fraction(8, 10), '#FCE94F'),
-        (Fraction(10, 10),'#8AE234'),
+        (Fraction(6, 10), '#F5C7C3'),
+        (Fraction(8, 10), '#FCE8AF'),
+        (Fraction(10, 10),'#B6E1CC'),
     ])
 
     def __init__(self, assignment, grade_str):
@@ -539,7 +539,7 @@ class AssignmentGrade(NamedNode):
         # type: () -> str
         """Map the partial grade onto a color scale."""
         if not self.has_grade:
-            return '#CCCCCC'
+            return '#FFFFFF'
         else:
             return self.COLOR_SCALE[self.partial_grade]
 
