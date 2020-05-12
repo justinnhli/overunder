@@ -212,6 +212,20 @@ FRACTION_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?/([0-9]*)(\.[0-9]+)?')
 SCORE_REGEX = re.compile(r'([0-9]*)(\.[0-9]+)?')
 LETTER_REGEX = re.compile(r'[A-F][+-]?(/[A-F][+-]?)?')
 
+DEFAULT_GRADE_SCALE = {
+    'F': Fraction(180, 300),
+    'D': Fraction(195, 300),
+    'D+': Fraction(210, 300),
+    'C-': Fraction(220, 300),
+    'C': Fraction(230, 300),
+    'C+': Fraction(240, 300),
+    'B-': Fraction(250, 300),
+    'B': Fraction(260, 300),
+    'B+': Fraction(270, 300),
+    'A-': Fraction(285, 300),
+    'A': Fraction(300, 300),
+}
+
 
 def parse_fraction(string, full_points=None, grade_scale=None):
     # type: (str, Optional[Fraction], Optional[Mapping[str, Fraction]]) -> Tuple[Optional[Fraction], str]
@@ -241,7 +255,7 @@ def parse_fraction(string, full_points=None, grade_scale=None):
         fraction_type = 'points'
     elif LETTER_REGEX.fullmatch(string):
         if grade_scale is None:
-            raise ValueError(f'no grade scale given for fraction: {string}')
+            grade_scale = DEFAULT_GRADE_SCALE
         if '/' in string:
             lower, upper = string.split('/')
             fraction = (
@@ -372,19 +386,6 @@ class ColorScale:
 class AssignmentGrade(NamedNode):
     """A grade for a specific assignment."""
 
-    LETTER_FRACTIONS = {
-        'F': Fraction(180, 300),
-        'D': Fraction(195, 300),
-        'D+': Fraction(210, 300),
-        'C-': Fraction(220, 300),
-        'C': Fraction(230, 300),
-        'C+': Fraction(240, 300),
-        'B-': Fraction(250, 300),
-        'B': Fraction(260, 300),
-        'B+': Fraction(270, 300),
-        'A-': Fraction(285, 300),
-        'A': Fraction(300, 300),
-    }
     COLOR_SCALE = ColorScale([
         (Fraction(6, 10), '#F5C7C3'),
         (Fraction(8, 10), '#FCE8AF'),
@@ -411,7 +412,7 @@ class AssignmentGrade(NamedNode):
         return parse_fraction(
             grade_str,
             full_points=self.assignment._weight,
-            grade_scale=self.LETTER_FRACTIONS,
+            grade_scale=DEFAULT_GRADE_SCALE,
         )[0]
 
     def __str__(self):
@@ -556,7 +557,7 @@ class AssignmentGrade(NamedNode):
     def letter_grade(fraction):
         # type: (Fraction) -> str
         """Get the letter grade associated with the percentage."""
-        for letter, boundary in AssignmentGrade.LETTER_FRACTIONS.items():
+        for letter, boundary in DEFAULT_GRADE_SCALE.items():
             if fraction < boundary:
                 return letter
         return 'A'
