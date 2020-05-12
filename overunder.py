@@ -329,8 +329,13 @@ class Assignment(NamedNode):
         if self._weight_type == 'percent':
             info.append(f'Percentage weight: {float(self.percent_weight):.2%}')
         if not self.is_leaf:
-            percent = sum(child.percent_weight for child in self.children)
-            info.append(f'Total child weight: {float(percent):.2%}')
+            child_weight_types = set(child._weight_type for child in self.children)
+            if child_weight_types == set(['percent']):
+                percent = sum(child.percent_weight for child in self.children)
+                info.append(f'Total child weight: {float(percent):.2%}')
+            if child_weight_types == set(['points']):
+                points = sum(child._weight for child in self.children)
+                info.append(f'Total child weight: {points}pts')
         return '\n'.join(info)
 
 
