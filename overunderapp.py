@@ -10,9 +10,8 @@ from pathlib import Path
 from overunder import GradeBook, parse_fraction
 
 try:
-    # pylint: disable = import-error
     from flask import Flask, render_template, abort, request, send_from_directory, url_for, redirect
-except ModuleNotFoundError as err:
+except (ModuleNotFoundError, ImportError) as err:
 
     def run_with_venv(venv):
         # type: (str) -> None
